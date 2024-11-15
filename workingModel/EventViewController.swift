@@ -4,7 +4,6 @@
 //
 //  Created by Yash's Mackbook on 12/11/24.
 //
-
 import UIKit
 
 class EventsViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
@@ -162,7 +161,7 @@ class EventsViewController: UIViewController, UICollectionViewDelegate, UICollec
                 item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
                 
                 // Group with two items per row
-                let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(250))
+                let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(200))
                 let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
                 
                 let section = NSCollectionLayoutSection(group: group)
@@ -200,237 +199,406 @@ class EventsViewController: UIViewController, UICollectionViewDelegate, UICollec
         ])
     }
     private func populateData() {
+        
         let trendingEvents = [
             EventModel(
-                title: "Tech Conference",
-                category: "Technology, Conference",
-                attendanceCount: 250,
-                organizerName: "Tech Innovators",
-                date: "Fri, 22 Nov",
-                time: "10:00 - 17:00 WIB",
-                location: "T.P Auditorium",
-                locationDetails: "Tech Park, Chennai",
-                imageName: "AarushIn",
-                speakers: [
-                    Speaker(name: "Samay Raina", imageURL: "samayrainaimg"),
-                    Speaker(name: "Rohit Saraf", imageURL: "rohitsaraf")
-                ],
-                description: "A conference for tech enthusiasts featuring leading experts."
-            ),
-            EventModel(
-                title: "Music Festival",
-                category: "Music, Concert",
-                attendanceCount: 500,
-                organizerName: "Live Nation",
-                date: "Sat, 23 Nov",
-                time: "18:00 - 23:00 WIB",
-                location: "City Amphitheatre",
-                locationDetails: "Downtown, Chennai",
-                imageName: "AarushIn",
-                speakers: [
-                    Speaker(name: "DJ Armin", imageURL: "djArmin"),
-                    Speaker(name: "Sarah Connor", imageURL: "sarahConnor")
-                ],
-                description: "Enjoy a night of amazing music with top DJs and bands."
-            ),
-            EventModel(
-                title: "Art Expo",
-                category: "Art, Exhibition",
-                attendanceCount: 300,
-                organizerName: "Art Community",
-                date: "Sun, 24 Nov",
-                time: "11:00 - 18:00 WIB",
-                location: "City Art Gallery",
-                locationDetails: "Museum Road, Chennai",
-                imageName: "AarushIn",
-                speakers: [
-                    Speaker(name: "Leonardo Ray", imageURL: "leonardoRay"),
-                    Speaker(name: "Mona Lisa", imageURL: "monaLisa")
-                ],
-                description: "A display of incredible art pieces from talented artists."
-            )
-        ]
-        
-        let funEvents = [
-            EventModel(
-                title: "Samay Raina Comedy Night",
-                category: "Comedy, Show",
-                attendanceCount: 500,
-                organizerName: "Aaruush",
-                date: "Sat, 24 Nov",
-                time: "19:00 - 21:00 WIB",
-                location: "T.P Auditorium",
-                locationDetails: "SRMIST, Chennai",
-                imageName: "SamayRaina",
-                speakers: [
-                    Speaker(name: "Samay Raina", imageURL: "samayRaina")
-                ],
-                description: "A night full of laughter with stand-up comedy by Samay Raina."
-            ),
-            EventModel(
-                title: "City Carnival",
-                category: "Fun, Festival",
+                eventId: "19", title: "Aaruush Grand Finale",
+                category: "Trending",
                 attendanceCount: 1000,
-                organizerName: "City Council",
-                date: "Sun, 25 Nov",
-                time: "09:00 - 20:00 WIB",
-                location: "Central Park",
-                locationDetails: "Downtown, Chennai",
-                imageName: "Sahilshah",
-                speakers: [
-                    Speaker(name: "Sahil Shah", imageURL: "sahilShah")
-                ],
-                description: "An exciting carnival with food, games, and live performances."
+                organizerName: "Aaruush Team",
+                date: "Wed, 3 Jan",
+                time: "18:00 - 22:00 IST",
+                location: "Main Arena",
+                locationDetails: "Central Lawn",
+                imageName: "AarushIn",
+                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg"),Speaker(name: "Rohit Saraf", imageURL: "rohitsaraf")],
+                description: "The grand finale of Aaruush, featuring cultural and tech highlights.",
+                latitude: 13.0604,
+                longitude: 80.2496
             ),
             EventModel(
-                title: "Jazz Night",
-                category: "Music, Concert",
-                attendanceCount: 200,
-                organizerName: "Music Lovers Club",
-                date: "Mon, 26 Nov",
-                time: "19:00 - 22:00 WIB",
-                location: "Blue Note Jazz Club",
-                locationDetails: "Jazz Street, Chennai",
-                imageName: "AditiMittal",
-                speakers: [
-                    Speaker(name: "Aditi Mittal", imageURL: "aditiMittal")
-                ],
-                description: "A cozy jazz night featuring soulful music and great ambiance."
+                eventId: "1", title: "Samay Raina Comedy Night",
+                category: "Fun and Entertainment",
+                attendanceCount: 100,
+                organizerName: "Fun Team",
+                date: "Fri, 15 Dec",
+                time: "19:00 - 21:00 IST",
+                location: "Auditorium A",
+                locationDetails: "Downtown Center",
+                imageName: "SamayRaina",
+                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")],
+                description: "A hilarious evening of stand-up comedy by Samay Raina.",
+                latitude: 13.0827,
+                longitude: 80.2707
+            ),
+            EventModel(
+                eventId: "19", title: "Aaruush Grand Finale",
+                category: "Trending",
+                attendanceCount: 1000,
+                organizerName: "Aaruush Team",
+                date: "Wed, 3 Jan",
+                time: "18:00 - 22:00 IST",
+                location: "Main Arena",
+                locationDetails: "Central Lawn",
+                imageName: "AarushIn",
+                speakers: [],
+                description: "The grand finale of Aaruush, featuring cultural and tech highlights.",
+                latitude: 13.0604,
+                longitude: 80.2496
             )
         ]
-        
-        let workshopEvents = [
-            EventModel(
-                title: "iOS Development Workshop",
-                category: "Technology, Workshop",
-                attendanceCount: 50,
-                organizerName: "Code Labs",
-                date: "Mon, 27 Nov",
-                time: "10:00 - 15:00 WIB",
-                location: "Tech Hub",
-                locationDetails: "IT Park, Chennai",
-                imageName: "Roboriot",
-                speakers: [
-                    Speaker(name: "John Appleseed", imageURL: "johnAppleseed"),
-                    Speaker(name: "Jane Doe", imageURL: "janeDoe")
-                ],
-                description: "Learn the basics of iOS app development in this interactive workshop."
-            ),
-            EventModel(
-                title: "Photography Basics",
-                category: "Art, Workshop",
-                attendanceCount: 30,
-                organizerName: "Photo Club",
-                date: "Tue, 28 Nov",
-                time: "14:00 - 18:00 WIB",
-                location: "City Hall",
-                locationDetails: "Photography District, Chennai",
-                imageName: "Ideathon",
-                speakers: [
-                    Speaker(name: "Peter Parker", imageURL: "peterParker")
-                ],
-                description: "Master the basics of photography and capture stunning images."
-            ),
-            EventModel(
-                title: "Cooking Class",
-                category: "Cooking, Workshop",
-                attendanceCount: 20,
-                organizerName: "Gourmet Club",
-                date: "Wed, 29 Nov",
-                time: "16:00 - 19:00 WIB",
-                location: "Gourmet Kitchen",
-                locationDetails: "Food Street, Chennai",
-                imageName: "DShack",
-                speakers: [
-                    Speaker(name: "Chef Mario", imageURL: "chefMario")
-                ],
-                description: "Join this hands-on class to learn gourmet cooking techniques."
-            )
-        ]
-        
-        // Store these arrays in your data source, or use them to populate your UI.
-    
+        let funEvents = [
+                EventModel(
+                    eventId: "1", title: "Samay Raina Comedy Night",
+                    category: "Fun and Entertainment",
+                    attendanceCount: 100,
+                    organizerName: "Fun Team",
+                    date: "Fri, 15 Dec",
+                    time: "19:00 - 21:00 IST",
+                    location: "Auditorium A",
+                    locationDetails: "Downtown Center",
+                    imageName: "SamayRaina",
+                    speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")],
+                    description: "A hilarious evening of stand-up comedy by Samay Raina.",
+                    latitude: 13.0827,
+                    longitude: 80.2707
+                ),
+                EventModel(
+                    eventId: "2", title: "Aditi Mittal Comedy Show",
+                    category: "Fun and Entertainment",
+                    attendanceCount: 150,
+                    organizerName: "Laughter Club",
+                    date: "Sat, 16 Dec",
+                    time: "18:00 - 20:00 IST",
+                    location: "Auditorium B",
+                    locationDetails: "City Square",
+                    imageName: "AditiMittal",
+                    speakers: [Speaker(name: "Aditi Mittal", imageURL: "aditimittalimg")],
+                    description: "Experience the wit and humor of Aditi Mittal.",
+                    latitude: 13.0780,
+                    longitude: 80.2500
+                ),
+                EventModel(
+                    eventId: "3", title: "Sahil Shah Live",
+                    category: "Fun and Entertainment",
+                    attendanceCount: 200,
+                    organizerName: "Event Pro",
+                    date: "Sun, 17 Dec",
+                    time: "20:00 - 22:00 IST",
+                    location: "Grand Theatre",
+                    locationDetails: "East Avenue",
+                    imageName: "Sahilshah",
+                    speakers: [Speaker(name: "Sahil Shah", imageURL: "sahilshahimg")],
+                    description: "Join Sahil Shah for a night full of entertainment.",
+                    latitude: 13.0750,
+                    longitude: 80.2600
+                ),
+                EventModel(
+                    eventId: "4", title: "Square One Fest",
+                    category: "Fun and Entertainment",
+                    attendanceCount: 250,
+                    organizerName: "City Events",
+                    date: "Mon, 18 Dec",
+                    time: "10:00 - 22:00 IST",
+                    location: "City Park",
+                    locationDetails: "Greenwood",
+                    imageName: "SqareOne",
+                    speakers: [],
+                    description: "Enjoy a full day of activities, music, and fun at Square One Fest.",
+                    latitude: 13.0800,
+                    longitude: 80.2400
+                )
+            ]
 
-        
-    categories = [
-            CategoryModel(name: "Trending", events: trendingEvents),
-            CategoryModel(name: "Fun and Entertainment", events: funEvents),
-            CategoryModel(name: "Workshops", events: workshopEvents)
-        ]
+            let techEvents = [
+                EventModel(
+                    eventId: "5", title: "Roboriot Championship",
+                    category: "Tech and Innovation",
+                    attendanceCount: 300,
+                    organizerName: "Tech Society",
+                    date: "Tue, 19 Dec",
+                    time: "09:00 - 17:00 IST",
+                    location: "Tech Hall",
+                    locationDetails: "Innovation Avenue",
+                    imageName: "Roboriot",
+                    speakers: [],
+                    description: "Robotics championship featuring teams from across the region.",
+                    latitude: 13.0450,
+                    longitude: 80.2200
+                ),
+                EventModel(
+                    eventId: "6", title: "Figma Summit",
+                    category: "Tech and Innovation",
+                    attendanceCount: 150,
+                    organizerName: "Designers Guild",
+                    date: "Wed, 20 Dec",
+                    time: "10:00 - 16:00 IST",
+                    location: "Creative Hub",
+                    locationDetails: "Design Plaza",
+                    imageName: "FigmaSummit",
+                    speakers: [],
+                    description: "Explore the latest in UI/UX design with industry experts.",
+                    latitude: 13.0480,
+                    longitude: 80.2120
+                ),
+                EventModel(
+                    eventId: "7", title: "Ideathon",
+                    category: "Tech and Innovation",
+                    attendanceCount: 100,
+                    organizerName: "Innovation Lab",
+                    date: "Thu, 21 Dec",
+                    time: "10:00 - 18:00 IST",
+                    location: "Campus Center",
+                    locationDetails: "Innovation Lane",
+                    imageName: "Ideathon",
+                    speakers: [],
+                    description: "A full-day idea generation competition for students and professionals.",
+                    latitude: 13.0530,
+                    longitude: 80.2150
+                ),
+                EventModel(
+                    eventId: "8", title: "DShack Coding Challenge",
+                    category: "Tech and Innovation",
+                    attendanceCount: 200,
+                    organizerName: "Tech Coders",
+                    date: "Fri, 22 Dec",
+                    time: "09:00 - 21:00 IST",
+                    location: "Coding Arena",
+                    locationDetails: "Code Street",
+                    imageName: "DShack",
+                    speakers: [],
+                    description: "A high-energy coding challenge for developers of all skill levels.",
+                    latitude: 13.0650,
+                    longitude: 80.2300
+                )
+            ]
+        let clubAndSocietiesEvents = [
+                EventModel(
+                    eventId: "9", title: "DSA Club Meetup",
+                    category: "Club and Societies",
+                    attendanceCount: 50,
+                    organizerName: "DSA Club",
+                    date: "Sat, 23 Dec",
+                    time: "15:00 - 17:00 IST",
+                    location: "Library Hall",
+                    locationDetails: "SRMIST Campus",
+                    imageName: "DSA",
+                    speakers: [],
+                    description: "Meetup for Data Structures and Algorithms enthusiasts.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                ),
+                EventModel(
+                    eventId: "10", title: "D-Bug Workshop",
+                    category: "Club and Societies",
+                    attendanceCount: 75,
+                    organizerName: "Coding Club",
+                    date: "Sun, 24 Dec",
+                    time: "10:00 - 13:00 IST",
+                    location: "Tech Lab 2",
+                    locationDetails: "SRMIST Campus",
+                    imageName: "Dbug",
+                    speakers: [],
+                    description: "Learn debugging techniques for efficient coding.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                ),
+                EventModel(
+                    eventId: "11", title: "MLSA Knowledge Sharing",
+                    category: "Club and Societies",
+                    attendanceCount: 60,
+                    organizerName: "Microsoft Club",
+                    date: "Mon, 25 Dec",
+                    time: "14:00 - 16:00 IST",
+                    location: "Room 203",
+                    locationDetails: "IT Block",
+                    imageName: "MLSA",
+                    speakers: [],
+                    description: "Knowledge sharing session hosted by MLSA members.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            
+            let culturalEvents = [
+                EventModel(
+                    eventId: "12", title: "Big Deal Dance Battle",
+                    category: "Cultural",
+                    attendanceCount: 200,
+                    organizerName: "Cultural Committee",
+                    date: "Tue, 26 Dec",
+                    time: "18:00 - 21:00 IST",
+                    location: "Main Stage",
+                    locationDetails: "Central Lawn",
+                    imageName: "BigDeal",
+                    speakers: [],
+                    description: "Dance competition featuring amazing talent.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                ),
+                EventModel(
+                    eventId: "13", title: "Musication Evening",
+                    category: "Cultural",
+                    attendanceCount: 300,
+                    organizerName: "Music Club",
+                    date: "Wed, 27 Dec",
+                    time: "19:00 - 22:00 IST",
+                    location: "Auditorium C",
+                    locationDetails: "SRMIST Campus",
+                    imageName: "Musication",
+                    speakers: [],
+                    description: "An evening filled with soothing music performances.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            
+            let networkingEvents = [
+                EventModel(
+                    eventId: "14", title: "Aaruush Live Session 1",
+                    category: "Networking",
+                    attendanceCount: 100,
+                    organizerName: "Networking Club",
+                    date: "Thu, 28 Dec",
+                    time: "10:00 - 12:00 IST",
+                    location: "Lecture Hall 1",
+                    locationDetails: "Networking Block",
+                    imageName: "AarushLive1",
+                    speakers: [],
+                    description: "Interactive live session with industry professionals.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                ),
+                EventModel(
+                    eventId: "15", title: "TEDx Youth",
+                    category: "Networking",
+                    attendanceCount: 400,
+                    organizerName: "TEDx Team",
+                    date: "Fri, 29 Dec",
+                    time: "14:00 - 17:00 IST",
+                    location: "Grand Theatre",
+                    locationDetails: "East Avenue",
+                    imageName: "TedX",
+                    speakers: [],
+                    description: "A platform for sharing inspiring ideas and innovation.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            let wellnessEvents = [
+                EventModel(
+                    eventId: "16", title: "Beach Cleanup Drive",
+                    category: "Wellness",
+                    attendanceCount: 50,
+                    organizerName: "NCC Club",
+                    date: "Sat, 30 Dec",
+                    time: "06:00 - 09:00 IST",
+                    location: "Marina Beach",
+                    locationDetails: "Chennai",
+                    imageName: "BeachClean",
+                    speakers: [],
+                    description: "Volunteer drive to clean up Marina Beach.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            let sportsEvents = [
+                EventModel(
+                    eventId: "17", title: "Twisted Trivia",
+                    category: "Sports",
+                    attendanceCount: 80,
+                    organizerName: "Sports Club",
+                    date: "Mon, 1 Jan",
+                    time: "16:00 - 18:00 IST",
+                    location: "Sports Complex",
+                    locationDetails: "SRMIST Campus",
+                    imageName: "TwistedTrivia",
+                    speakers: [],
+                    description: "Fun trivia challenge focusing on sports topics.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            let careerConnectEvents = [
+                EventModel(
+                    eventId: "18", title: "Career Guidance Session",
+                    category: "Career Connect",
+                    attendanceCount: 200,
+                    organizerName: "Placement Cell",
+                    date: "Tue, 2 Jan",
+                    time: "10:00 - 12:00 IST",
+                    location: "Lecture Hall 2",
+                    locationDetails: "Placement Block",
+                    imageName: "ppt1",
+                    speakers: [],
+                    description: "Session on shaping careers and leveraging opportunities.",
+                    latitude: 13.0604,
+                    longitude: 80.2496
+                )
+            ]
+            categories = [
+                CategoryModel(name: "Trending ", events: trendingEvents),
+                CategoryModel(name: "Fun and Entertainment", events: funEvents),
+                        CategoryModel(name: "Tech and Innovation", events: techEvents),
+                CategoryModel(name: "Club and Societies", events: clubAndSocietiesEvents),
+                CategoryModel(name: "Cultural", events: culturalEvents),
+                CategoryModel(name: "Networking", events: networkingEvents),
+                CategoryModel(name: "Wellness", events: wellnessEvents),
+                CategoryModel(name: "Sports", events: sportsEvents),
+                CategoryModel(name: "Career Connect", events: careerConnectEvents),
+                
+                
+            ]
         
         collectionView.reloadData()
     }
-    
 
     // Collection View DataSource methods
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        if collectionView == categoryCollectionView {
-                   return 1
-               }
-               return categories.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView == categoryCollectionView {
-            return ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ].count
-        }
-        return categories[section].events.count
-    }
-
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == categoryCollectionView {
-                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryButtonCell.identifier, for: indexPath) as! CategoryButtonCell
-                    let categories = ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ]
-                    cell.configure(with: categories[indexPath.item])
-                    return cell
-                }
-                
-                let event = categories[indexPath.section].events[indexPath.item]
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EventCell.identifier, for: indexPath) as! EventCell
-                cell.configure(with: event)
-                return cell
-            }
-
-    // Add headers for section titles
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.identifier, for: indexPath) as! CategoryHeader
-        header.titleLabel.text = categories[indexPath.section].name
-        return header
-    }
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        if collectionView != categoryCollectionView {
-//            // Retrieve the selected event
-//            let selectedEvent = categories[indexPath.section].events[indexPath.item]
-//            
-//            // Initialize EventDetailViewController and pass the selected event
-//            let detailVC = EventDetailViewController(event: selectedEvent)
-//            
-//            // Push EventDetailViewController onto the navigation stack
-//            navigationController?.pushViewController(detailVC, animated: true)
-//        }
-//    }
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-           guard collectionView != categoryCollectionView else {
-               // If the tapped collection view is the categoryCollectionView, ignore this action
-               return
-           }
-           
-           let selectedEvent = categories[indexPath.section].events[indexPath.item]
-           
-           // Instantiate EventDetailViewController
-           let eventDetailVC = EventDetailViewController()
-           
-           // Pass the selected event data to the detail view controller
-           eventDetailVC.event = selectedEvent
-           
-           // Push EventDetailViewController onto the navigation stack
-           navigationController?.pushViewController(eventDetailVC, animated: true)
+       func numberOfSections(in collectionView: UICollectionView) -> Int {
+           if collectionView == categoryCollectionView {
+                      return 1
+                  }
+                  return categories.count
        }
-   
-    
-}
+       
+       func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+           if collectionView == categoryCollectionView {
+               return ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ].count
+           }
+           return categories[section].events.count
+       }
+       func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+           if collectionView == categoryCollectionView {
+                       let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryButtonCell.identifier, for: indexPath) as! CategoryButtonCell
+                       let categories = ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ]
+                       cell.configure(with: categories[indexPath.item])
+                       return cell
+                   }
+                   
+                   let event = categories[indexPath.section].events[indexPath.item]
+                   let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EventCell.identifier, for: indexPath) as! EventCell
+                   cell.configure(with: event)
+                   return cell
+               }
 
-
-
-
+       // Add headers for section titles
+       func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+           let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.identifier, for: indexPath) as! CategoryHeader
+           header.titleLabel.text = categories[indexPath.section].name
+           return header
+       }
+       func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+              guard collectionView != categoryCollectionView else {
+                  // If the tapped collection view is the categoryCollectionView, ignore this action
+                  return
+              }
+              let selectedEvent = categories[indexPath.section].events[indexPath.item]
+              
+              // Instantiate EventDetailViewController
+              let eventDetailVC = EventDetailViewController()
+              // Pass the selected event data to the detail view controller
+              eventDetailVC.event = selectedEvent
+              // Push EventDetailViewController onto the navigation stack
+              navigationController?.pushViewController(eventDetailVC, animated: true)
+          }
+   }
