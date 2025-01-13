@@ -27,7 +27,7 @@ struct EventModel: Codable {
     let time: String
     let location: String
     let locationDetails: String
-    let imageName: String
+    var imageName: String
     let speakers: [Speaker]
     let description: String?
     var latitude: Double? // New property

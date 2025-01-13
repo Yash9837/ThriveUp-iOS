@@ -5,9 +5,12 @@
 //  Created by Yash's Mackbook on 14/12/24.
 //
 import UIKit
+import MapKit
+import CoreLocation
+import FirebaseAuth
 import FirebaseFirestore
 
-class EventPostViewController: UIViewController {
+class EventPostViewController: UIViewController, CLLocationManagerDelegate {
     
     // MARK: - UI Components
     private let scrollView = UIScrollView()
@@ -35,6 +38,14 @@ class EventPostViewController: UIViewController {
     private let locationLabel = UILabel()
     private let locationTextField = UITextField()
     
+    private let mapView: MKMapView = {
+        let mapView = MKMapView()
+        mapView.layer.cornerRadius = 8
+        mapView.layer.borderWidth = 1
+        mapView.layer.borderColor = UIColor.lightGray.cgColor
+        return mapView
+    }()
+    
     private let locationDetailsLabel = UILabel()
     private let locationDetailsTextField = UITextField()
     
@@ -44,12 +55,6 @@ class EventPostViewController: UIViewController {
     private let imageLabel = UILabel()
     private let imageTextField = UITextField()
     
-    private let latitudeLabel = UILabel()
-    private let latitudeTextField = UITextField()
-    
-    private let longitudeLabel = UILabel()
-    private let longitudeTextField = UITextField()
-    
     private let submitButton = UIButton(type: .system)
     
     // Firestore Reference
@@ -58,10 +63,15 @@ class EventPostViewController: UIViewController {
     // Predefined Categories
     private let categories = [
         "Trending", "Fun and Entertainment", "Tech and Innovation",
-        "Club and Societies", "Cultural"
-, "Networking", "Sports","Career Connect", "Wellness", "Other"
+        "Club and Societies", "Cultural", "Networking", "Sports",
+        "Career Connect", "Wellness", "Other"
     ]
     private var selectedCategory: String?
+    
+    // Location Variables
+    private var selectedLatitude: Double?
+    private var selectedLongitude: Double?
+    private let locationManager = CLLocationManager()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -69,8 +79,57 @@ class EventPostViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
-//        let pushEventsService = PushEventsToDatabase()
-//        pushEventsService.pushEvents()
+        setupMapGestureRecognizer()
+        setupLocationManager()
+    }
+    private func showLocationPermissionAlert() {
+        let alert = UIAlertController(
+            title: "Location Permission Denied",
+            message: "Please enable location permissions in Settings to select event locations.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Settings", style: .default) { _ in
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    // MARK: - Location Manager Setup
+    private func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        
+        let status = CLLocationManager.authorizationStatus()
+        if status == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+        } else if status == .denied || status == .restricted {
+            showLocationPermissionAlert()
+        } else {
+            locationManager.startUpdatingLocation()
+        }
+    }
+
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let userLocation = locations.last else { return }
+        
+        // Center map on user's current location
+        let coordinateRegion = MKCoordinateRegion(
+            center: userLocation.coordinate,
+            latitudinalMeters: 1000,
+            longitudinalMeters: 1000
+        )
+        mapView.setRegion(coordinateRegion, animated: true)
+        
+        // Stop updating location to save battery
+        locationManager.stopUpdatingLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to find user's location: \(error.localizedDescription)")
     }
     
     // MARK: - UI Setup
@@ -124,10 +183,13 @@ class EventPostViewController: UIViewController {
         setupTextField(timeTextField, placeholder: "Enter event time (e.g., 10:00 AM)")
         
         // Location
-        locationLabel.text = "Location"
+        locationLabel.text = "Location Name"
         locationLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         contentView.addSubview(locationLabel)
-        setupTextField(locationTextField, placeholder: "Enter location")
+        setupTextField(locationTextField, placeholder: "Enter location name")
+        
+        // Map View
+        contentView.addSubview(mapView)
         
         // Location Details
         locationDetailsLabel.text = "Location Details"
@@ -151,18 +213,6 @@ class EventPostViewController: UIViewController {
         contentView.addSubview(imageLabel)
         setupTextField(imageTextField, placeholder: "Enter image URL")
         
-        // Latitude
-        latitudeLabel.text = "Latitude"
-        latitudeLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        contentView.addSubview(latitudeLabel)
-        setupTextField(latitudeTextField, placeholder: "Enter latitude", keyboardType: .decimalPad)
-        
-        // Longitude
-        longitudeLabel.text = "Longitude"
-        longitudeLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        contentView.addSubview(longitudeLabel)
-        setupTextField(longitudeTextField, placeholder: "Enter longitude", keyboardType: .decimalPad)
-        
         // Submit Button
         submitButton.setTitle("Post Event", for: .normal)
         submitButton.backgroundColor = .systemBlue
@@ -171,6 +221,7 @@ class EventPostViewController: UIViewController {
         submitButton.addTarget(self, action: #selector(postEvent), for: .touchUpInside)
         contentView.addSubview(submitButton)
     }
+    
     private func setupConstraints() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -183,16 +234,15 @@ class EventPostViewController: UIViewController {
             dateLabel, datePicker,
             timeLabel, timeTextField,
             locationLabel, locationTextField,
-            locationDetailsLabel, locationDetailsTextField,
-            descriptionLabel, descriptionTextView,
-            imageLabel, imageTextField,
-            latitudeLabel, latitudeTextField,
-            longitudeLabel, longitudeTextField,
-            submitButton
+            mapView, locationDetailsLabel,
+            locationDetailsTextField, descriptionLabel,
+            descriptionTextView, imageLabel,
+            imageTextField, submitButton
         ]
         
         for view in views {
             view.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(view)
         }
         
         NSLayoutConstraint.activate([
@@ -285,8 +335,14 @@ class EventPostViewController: UIViewController {
             locationTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             locationTextField.heightAnchor.constraint(equalToConstant: 44),
             
+            // Map View
+            mapView.topAnchor.constraint(equalTo: locationTextField.bottomAnchor, constant: 16),
+            mapView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            mapView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            mapView.heightAnchor.constraint(equalToConstant: 300),
+            
             // Location Details Label
-            locationDetailsLabel.topAnchor.constraint(equalTo: locationTextField.bottomAnchor, constant: 16),
+            locationDetailsLabel.topAnchor.constraint(equalTo: mapView.bottomAnchor, constant: 16),
             locationDetailsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             locationDetailsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
@@ -318,30 +374,8 @@ class EventPostViewController: UIViewController {
             imageTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             imageTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            // Latitude Label
-            latitudeLabel.topAnchor.constraint(equalTo: imageTextField.bottomAnchor, constant: 16),
-            latitudeLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            latitudeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            // Latitude TextField
-            latitudeTextField.topAnchor.constraint(equalTo: latitudeLabel.bottomAnchor, constant: 8),
-            latitudeTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            latitudeTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            latitudeTextField.heightAnchor.constraint(equalToConstant: 44),
-            
-            // Longitude Label
-            longitudeLabel.topAnchor.constraint(equalTo: latitudeTextField.bottomAnchor, constant: 16),
-            longitudeLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            longitudeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            
-            // Longitude TextField
-            longitudeTextField.topAnchor.constraint(equalTo: longitudeLabel.bottomAnchor, constant: 8),
-            longitudeTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            longitudeTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            longitudeTextField.heightAnchor.constraint(equalToConstant: 44),
-            
             // Submit Button
-            submitButton.topAnchor.constraint(equalTo: longitudeTextField.bottomAnchor, constant: 20),
+            submitButton.topAnchor.constraint(equalTo: imageTextField.bottomAnchor, constant: 20),
             submitButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             submitButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             submitButton.heightAnchor.constraint(equalToConstant: 50),
@@ -349,6 +383,7 @@ class EventPostViewController: UIViewController {
         ])
     }
 
+    
     private func setupTextField(_ textField: UITextField, placeholder: String, keyboardType: UIKeyboardType = .default) {
         textField.placeholder = placeholder
         textField.borderStyle = .roundedRect
@@ -356,71 +391,100 @@ class EventPostViewController: UIViewController {
         contentView.addSubview(textField)
     }
     
-    // MARK: - Post Event
-    @objc private func postEvent() {
-        guard let title = titleTextField.text, !title.isEmpty,
-              let selectedCategory = selectedCategory, !selectedCategory.isEmpty,
-              let organizerName = organizerTextField.text, !organizerName.isEmpty,
-              let time = timeTextField.text, !time.isEmpty,
-              let location = locationTextField.text, !location.isEmpty else {
-            showAlert(title: "Error", message: "Please fill in all required fields.")
-            return
-        }
-        
-        let eventId = UUID().uuidString
-        let attendanceCount = Int(attendanceTextField.text ?? "0") ?? 0
-        let eventDate = DateFormatter.localizedString(from: datePicker.date, dateStyle: .medium, timeStyle: .none)
-        let locationDetails = locationDetailsTextField.text ?? ""
-        let description = descriptionTextView.text.isEmpty ? nil : descriptionTextView.text
-        let imageName = imageTextField.text ?? ""
-        let latitude = Double(latitudeTextField.text ?? "0.0")
-        let longitude = Double(longitudeTextField.text ?? "0.0")
-        
-        let eventData: [String: Any] = [
-            "eventId": eventId,
-            "title": title,
-            "category": selectedCategory,
-            "attendanceCount": attendanceCount,
-            "organizerName": organizerName,
-            "date": eventDate,
-            "time": time,
-            "location": location,
-            "locationDetails": locationDetails,
-            "description": description ?? "",
-            "imageName": imageName,
-            "latitude": latitude ?? 0.0,
-            "longitude": longitude ?? 0.0
-        ]
-        
-        db.collection("events").document(eventId).setData(eventData) { error in
-            if let error = error {
-                self.showAlert(title: "Error", message: error.localizedDescription)
-            } else {
-                self.showAlert(title: "Success", message: "Event posted successfully!")
-            }
-        }
-    }
-    
-    // MARK: - Helpers
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-    
     private func setupKeyboardHandling() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false // Allow other interactions, such as map gestures
         view.addGestureRecognizer(tapGesture)
     }
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
+    
+    private func setupMapGestureRecognizer() {
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleMapLongPress(_:)))
+        mapView.addGestureRecognizer(longPressGesture)
+    }
+    
+    @objc private func handleMapLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            let locationInView = gesture.location(in: mapView)
+            let coordinate = mapView.convert(locationInView, toCoordinateFrom: mapView)
+            
+            // Remove existing annotations
+            mapView.removeAnnotations(mapView.annotations)
+            
+            // Add a new pin
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "Event Location"
+            mapView.addAnnotation(annotation)
+            
+            // Save coordinates
+            selectedLatitude = coordinate.latitude
+            selectedLongitude = coordinate.longitude
+        }
+    }
+    
+    // MARK: - Post Event
+    @objc private func postEvent() {
+        guard let title = titleTextField.text, !title.isEmpty,
+              let selectedCategory = selectedCategory, !selectedCategory.isEmpty,
+              let time = timeTextField.text, !time.isEmpty,
+              let location = locationTextField.text, !location.isEmpty,
+              let latitude = selectedLatitude, let longitude = selectedLongitude else {
+            showAlert(title: "Error", message: "Please fill in all required fields.")
+            return
+        }
+
+        let eventId = UUID().uuidString
+        let attendanceCount = Int(attendanceTextField.text ?? "0") ?? 0
+        let eventDate = DateFormatter.localizedString(from: datePicker.date, dateStyle: .medium, timeStyle: .none)
+        let locationDetails = locationDetailsTextField.text ?? ""
+        let description = descriptionTextView.text.isEmpty ? nil : descriptionTextView.text
+        let imageName = "default-image" // Replace this with actual image logic if needed
+
+        let eventData: [String: Any] = [
+            "eventId": eventId,
+            "title": title,
+            "category": selectedCategory,
+            "attendanceCount": attendanceCount,
+            "date": eventDate,
+            "time": time,
+            "location": location,
+            "locationDetails": locationDetails,
+            "description": description ?? "",
+            "latitude": latitude,
+            "longitude": longitude,
+            "imageName": imageName
+        ]
+
+        db.collection("events").document(eventId).setData(eventData) { error in
+            if let error = error {
+                self.showAlert(title: "Error", message: error.localizedDescription)
+            } else {
+                self.showAlert(title: "Success", message: "Event posted successfully!") {
+                    // Redirect to EventListViewController tab
+                    self.tabBarController?.selectedIndex = 0 // Switch to the first tab (EventListViewController)
+                }
+            }
+        }
+    }
+
+    
+    private func showAlert(title: String, message: String, completion: (() -> Void)? = nil) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+            completion?()
+        }
+        alert.addAction(okAction)
+        present(alert, animated: true)
+    }
+
 }
 
 // MARK: - UIPickerViewDelegate and UIPickerViewDataSource
 extension EventPostViewController: UIPickerViewDelegate, UIPickerViewDataSource {
-    
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }

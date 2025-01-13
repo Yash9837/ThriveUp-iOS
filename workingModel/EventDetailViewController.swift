@@ -219,7 +219,6 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
             FormField(placeholder: "Last Name", value: ""),
             FormField(placeholder: "Phone Number", value: ""),
             FormField(placeholder: "Year of Study", value: ""),
-            FormField(placeholder: "E-mail ID", value: ""),
             FormField(placeholder: "Course", value: ""),
             FormField(placeholder: "Department", value: ""),
             FormField(placeholder: "Specialization", value: "")

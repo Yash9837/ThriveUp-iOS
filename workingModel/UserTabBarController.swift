@@ -42,8 +42,8 @@ class UserTabBarController: UITabBarController {
         swipeVC.view.backgroundColor = .white
         swipeVC.tabBarItem = UITabBarItem(title: "Swipe", image: UIImage(systemName: "rectangle.on.rectangle.angled"), tag: 2)
         
-        let profileVC = UINavigationController(rootViewController: ProfileViewController(categories: [])) // Pass categories here if required
-        profileVC.view.backgroundColor = .white // Fixed this line
+        let profileVC = UINavigationController(rootViewController: ProfileViewController()) // Profile tab
+        profileVC.view.backgroundColor = .white
         profileVC.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), tag: 3)
         
         viewControllers = [eventsVC, chatVC, swipeVC, profileVC]

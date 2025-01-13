@@ -50,6 +50,8 @@
 		577DA2F02CE898F000760BFA /* UserTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2EF2CE898F000760BFA /* UserTabBarController.swift */; };
 		577DA2F22CE8A4A000760BFA /* UserEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */; };
 		577DA2F42CE8A82900760BFA /* GeneralTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2F32CE8A82900760BFA /* GeneralTabbarController.swift */; };
+		57CDC6782D30451000836984 /* RegistrationsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CDC6772D30451000836984 /* RegistrationsListViewController.swift */; };
+		57CDC67A2D30475900836984 /* RegistrationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CDC6792D30475900836984 /* RegistrationTableViewCell.swift */; };
 		57D977932CE8BD54004B1314 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977922CE8BD54004B1314 /* ProfileViewController.swift */; };
 		57D977992CE9C9BF004B1314 /* RegistrationDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977982CE9C9BF004B1314 /* RegistrationDataViewController.swift */; };
 		57D9779B2CE9E13D004B1314 /* RegisteredEventCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D9779A2CE9E13D004B1314 /* RegisteredEventCell.swift */; };
@@ -107,6 +109,8 @@
 		577DA2EF2CE898F000760BFA /* UserTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTabBarController.swift; sourceTree = "<group>"; };
 		577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserEventViewController.swift; sourceTree = "<group>"; };
 		577DA2F32CE8A82900760BFA /* GeneralTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralTabbarController.swift; sourceTree = "<group>"; };
+		57CDC6772D30451000836984 /* RegistrationsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationsListViewController.swift; sourceTree = "<group>"; };
+		57CDC6792D30475900836984 /* RegistrationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationTableViewCell.swift; sourceTree = "<group>"; };
 		57D977922CE8BD54004B1314 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		57D977982CE9C9BF004B1314 /* RegistrationDataViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationDataViewController.swift; sourceTree = "<group>"; };
 		57D9779A2CE9E13D004B1314 /* RegisteredEventCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisteredEventCell.swift; sourceTree = "<group>"; };
@@ -195,6 +199,7 @@
 				577DA2DB2CE88FC500760BFA /* SavedRegistrationCell.swift */,
 				577DA2DD2CE88FE700760BFA /* LoginViewController.swift */,
 				577DA2DF2CE8901800760BFA /* ChatDetailViewController.swift */,
+				577DA2F32CE8A82900760BFA /* GeneralTabbarController.swift */,
 				577DA2E12CE8909600760BFA /* ChatMessageCell.swift */,
 				577DA2E32CE890BF00760BFA /* ChatCell.swift */,
 				577DA2E52CE890EA00760BFA /* AddFriendsViewController.swift */,
@@ -204,7 +209,6 @@
 				577DA2ED2CE8922B00760BFA /* NotificationCell.swift */,
 				577DA2EF2CE898F000760BFA /* UserTabBarController.swift */,
 				577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */,
-				577DA2F32CE8A82900760BFA /* GeneralTabbarController.swift */,
 				57D977922CE8BD54004B1314 /* ProfileViewController.swift */,
 				39DF78392CE9AF5E004B8244 /* SwipeViewController.swift */,
 				39DF783B2CE9B011004B8244 /* BookmarkViewController.swift */,
@@ -225,6 +229,8 @@
 				572D8A482D0D9E5B00DAB286 /* EventRegistrationViewController.swift */,
 				572D8A4C2D0DA2FD00DAB286 /* EventListViewController.swift */,
 				572D8A502D0DFBE000DAB286 /* EventPostViewController.swift */,
+				57CDC6772D30451000836984 /* RegistrationsListViewController.swift */,
+				57CDC6792D30475900836984 /* RegistrationTableViewCell.swift */,
 			);
 			name = ThriveUp;
 			path = workingModel;
@@ -321,6 +327,8 @@
 				57D9779B2CE9E13D004B1314 /* RegisteredEventCell.swift in Sources */,
 				39DF783C2CE9B011004B8244 /* BookmarkViewController.swift in Sources */,
 				57D977AB2CEC89C7004B1314 /* UnauthenViewController.swift in Sources */,
+				57CDC67A2D30475900836984 /* RegistrationTableViewCell.swift in Sources */,
+				57CDC6782D30451000836984 /* RegistrationsListViewController.swift in Sources */,
 				57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */,
 				57D977A92CEB881B004B1314 /* SplashViewController.swift in Sources */,
 				57D977AF2CEC94B2004B1314 /* OrganizerViewController.swift in Sources */,

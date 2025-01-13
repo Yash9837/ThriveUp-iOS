@@ -11,11 +11,14 @@
 //  Created by palak seth on 17/11/24.
 //
 import UIKit
+import FirebaseFirestore
+import FirebaseAuth
 
 class SwipeViewController: UIViewController {
     
-    private var eventStack: [Event] = EventDataSource.sampleEvents.reversed()
-    private var bookmarkedEvents: [Event] = []
+    private var eventStack: [EventModel] = []
+    private var bookmarkedEvents: [EventModel] = []
+    private let db = Firestore.firestore()
     
     private let cardContainerView: UIView = {
         let view = UIView()
@@ -27,7 +30,7 @@ class SwipeViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("X", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
-        button.backgroundColor = .orange // Initial orange color
+        button.backgroundColor = .orange
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 35
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -38,7 +41,7 @@ class SwipeViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("📖", for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
-        button.backgroundColor = .orange // Initial orange color
+        button.backgroundColor = .orange
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 35
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -52,7 +55,7 @@ class SwipeViewController: UIViewController {
         
         setupViews()
         setupConstraints()
-        displayTopCards()
+        fetchEventsFromDatabase()
     }
     
     private func setupViews() {
@@ -67,9 +70,9 @@ class SwipeViewController: UIViewController {
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             cardContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cardContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -30), // Shift cards upward
+            cardContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -30),
             cardContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
-            cardContainerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6), // Reduce card height
+            cardContainerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6),
             
             discardButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             discardButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -81,6 +84,33 @@ class SwipeViewController: UIViewController {
             bookmarkButton.widthAnchor.constraint(equalToConstant: 70),
             bookmarkButton.heightAnchor.constraint(equalToConstant: 70),
         ])
+    }
+    
+    private func fetchEventsFromDatabase() {
+        db.collection("events").getDocuments { [weak self] (snapshot, error) in
+            if let error = error {
+                print("Error fetching events: \(error.localizedDescription)")
+                return
+            }
+            
+            var fetchedEvents: [EventModel] = []
+            
+            snapshot?.documents.forEach { document in
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: document.data())
+                    let event = try JSONDecoder().decode(EventModel.self, from: jsonData)
+                    fetchedEvents.append(event)
+                } catch {
+                    print("Error decoding event: \(error.localizedDescription)")
+                }
+            }
+            
+            self?.eventStack = fetchedEvents.reversed()
+            
+            DispatchQueue.main.async {
+                self?.displayTopCards()
+            }
+        }
     }
     
     private func displayTopCards() {
@@ -100,120 +130,217 @@ class SwipeViewController: UIViewController {
         }
     }
     
-    private func createCard(for event: Event) -> UIView {
-        let cardView = UIView()
-        cardView.backgroundColor = .white
-        cardView.layer.cornerRadius = 15
-        cardView.layer.shadowColor = UIColor.black.cgColor
-        cardView.layer.shadowOpacity = 0.3
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 5)
-        cardView.layer.shadowRadius = 10
-        
-        let imageView = UIImageView(image: event.image)
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 15
-        imageView.clipsToBounds = true
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let titleLabel = UILabel()
-        titleLabel.text = event.title
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 20) // Reduced font size
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let descriptionLabel = UILabel()
-        descriptionLabel.text = event.description
-        descriptionLabel.font = UIFont.systemFont(ofSize: 14) // Reduced font size
-        descriptionLabel.numberOfLines = 0
-        descriptionLabel.textAlignment = .center
-        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        cardView.addSubview(imageView)
-        cardView.addSubview(titleLabel)
-        cardView.addSubview(descriptionLabel)
-        
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: cardView.topAnchor),
-            imageView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
-            imageView.heightAnchor.constraint(equalTo: cardView.heightAnchor, multiplier: 0.6),
-            
-            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
-            
-            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            descriptionLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
-            descriptionLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
-            descriptionLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -16)
-        ])
-        
-        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
-        swipeLeft.direction = .left
-        cardView.addGestureRecognizer(swipeLeft)
-        
-        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
-        swipeRight.direction = .right
-        cardView.addGestureRecognizer(swipeRight)
+    private func createCard(for event: EventModel) -> UIView {
+        let cardView = FlippableCardView(event: event)
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Add swipe gesture recognizers
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
+        cardView.addGestureRecognizer(panGesture)
         
         return cardView
     }
-    
-    @objc private func handleSwipe(_ gesture: UISwipeGestureRecognizer) {
-        guard let cardView = gesture.view else { return }
-        let direction = gesture.direction == .right ? 1 : -1
+
+    @objc private func handleSwipe(_ gesture: UIPanGestureRecognizer) {
+        guard let cardView = gesture.view as? FlippableCardView else { return }
+        let translation = gesture.translation(in: view)
+        let xFromCenter = translation.x
         
-        UIView.animate(withDuration: 0.3, animations: {
-            cardView.transform = CGAffineTransform(translationX: CGFloat(direction) * self.view.frame.width, y: 0)
-            cardView.alpha = 0
-        }, completion: { _ in
-            cardView.removeFromSuperview()
-            if gesture.direction == .right {
-                self.bookmarkEvent()
+        switch gesture.state {
+        case .changed:
+            // Move the card based on swipe gesture
+            cardView.transform = CGAffineTransform(translationX: xFromCenter, y: 0)
+                .rotated(by: xFromCenter / 200)
+            cardView.alpha = 1 - abs(xFromCenter) / view.frame.width
+        
+        case .ended:
+            if xFromCenter > 100 {
+                // Swipe right: Bookmark event
+                bookmarkEvent(for: cardView.event)
+                animateCardOffScreen(cardView, toRight: true)
+                changeButtonColor(button: bookmarkButton, color: .green)
+            } else if xFromCenter < -100 {
+                // Swipe left: Discard event
+                discardEvent(for: cardView.event)
+                animateCardOffScreen(cardView, toRight: false)
+                changeButtonColor(button: discardButton, color: .red)
             } else {
-                self.discardEvent()
+                // Reset card position if not swiped far enough
+                UIView.animate(withDuration: 0.3) {
+                    cardView.transform = .identity
+                    cardView.alpha = 1
+                }
             }
-        })
+        default:
+            break
+        }
     }
-    
+
+    private func animateCardOffScreen(_ cardView: FlippableCardView, toRight: Bool) {
+        UIView.animate(withDuration: 0.5, animations: {
+            let direction: CGFloat = toRight ? 1 : -1
+            cardView.transform = CGAffineTransform(translationX: direction * self.view.frame.width, y: 0)
+            cardView.alpha = 0
+        }) { _ in
+            cardView.removeFromSuperview()
+            self.displayTopCards() // Load the next card
+        }
+    }
+
+    private func changeButtonColor(button: UIButton, color: UIColor) {
+        UIView.animate(withDuration: 0.5) {
+            button.backgroundColor = color
+        } completion: { _ in
+            UIView.animate(withDuration: 0.5) {
+                button.backgroundColor = .orange // Reset to original color
+            }
+        }
+    }
+
     @objc private func handleDiscard() {
-        discardEvent()
+        if let topEvent = eventStack.last {
+            discardEvent(for: topEvent)
+        }
     }
-    
+
     @objc private func handleBookmark() {
-        bookmarkEvent()
+        if let topEvent = eventStack.last {
+            bookmarkEvent(for: topEvent)
+        }
     }
-    
-    private func discardEvent() {
-        guard let _ = eventStack.last else { return }
-        discardButton.backgroundColor = .red
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.discardButton.backgroundColor = .orange
+
+    private func bookmarkEvent(for event: EventModel) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User is not authenticated")
+            return
         }
         
-        eventStack.removeLast()
+        let eventData: [String: Any] = [
+            "userId": userId,
+            "eventId": event.eventId,
+            "title": event.title,
+            "category": event.category,
+            "attendanceCount": event.attendanceCount,
+            "organizerName": event.organizerName,
+            "date": event.date,
+            "time": event.time,
+            "location": event.location,
+            "locationDetails": event.locationDetails,
+            "description": event.description ?? "No description available.",
+            "timestamp": Timestamp()
+        ]
+        
+        db.collection("swipedeventsdb").addDocument(data: eventData) { error in
+            if let error = error {
+                print("Error saving bookmarked event: \(error.localizedDescription)")
+            }
+        }
+        
+        eventStack.removeAll { $0.eventId == event.eventId }
         displayTopCards()
     }
     
-    private func bookmarkEvent() {
-        guard let topEvent = eventStack.last else { return }
-        bookmarkButton.backgroundColor = .green
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.bookmarkButton.backgroundColor = .orange
-        }
-        
-        bookmarkedEvents.append(topEvent)
-        saveBookmarks()
-        eventStack.removeLast()
+    private func discardEvent(for event: EventModel) {
+        eventStack.removeAll { $0.eventId == event.eventId }
         displayTopCards()
-    }
-    
-    private func saveBookmarks() {
-        if let data = try? JSONEncoder().encode(bookmarkedEvents) {
-            UserDefaults.standard.set(data, forKey: "bookmarkedEvents1")
-        }
     }
 }
 
+// MARK: - Flippable Card View
+
+class FlippableCardView: UIView {
+    
+    private var isFlipped = false
+    private let frontView = UIView()
+    private let backView = UIView()
+    let event: EventModel
+    
+    init(event: EventModel) {
+        self.event = event
+        super.init(frame: .zero)
+        setupViews()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupViews() {
+        frontView.backgroundColor = .white
+        frontView.layer.cornerRadius = 10
+        frontView.layer.masksToBounds = true
+        
+        let imageView = UIImageView(image: UIImage(named: event.imageName))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        frontView.addSubview(imageView)
+        
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: frontView.topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: frontView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: frontView.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: frontView.bottomAnchor)
+        ])
+        
+        backView.backgroundColor = .white
+        backView.layer.cornerRadius = 10
+        backView.layer.masksToBounds = true
+        
+        let detailsLabel = UILabel()
+        detailsLabel.numberOfLines = 0
+        detailsLabel.textAlignment = .center
+        detailsLabel.font = UIFont.systemFont(ofSize: 14)
+        detailsLabel.text = """
+        Title: \(event.title)
+        Category: \(event.category)
+        Organizer: \(event.organizerName)
+        Date: \(event.date)
+        Time: \(event.time)
+        Location: \(event.location)
+        Attendance: \(event.attendanceCount)
+        Description: \(event.description ?? "No description available.")
+        """
+        detailsLabel.translatesAutoresizingMaskIntoConstraints = false
+        backView.addSubview(detailsLabel)
+        
+        NSLayoutConstraint.activate([
+            detailsLabel.centerXAnchor.constraint(equalTo: backView.centerXAnchor),
+            detailsLabel.centerYAnchor.constraint(equalTo: backView.centerYAnchor),
+            detailsLabel.leadingAnchor.constraint(equalTo: backView.leadingAnchor, constant: 10),
+            detailsLabel.trailingAnchor.constraint(equalTo: backView.trailingAnchor, constant: -10)
+        ])
+        
+        addSubview(frontView)
+        addSubview(backView)
+        
+        frontView.translatesAutoresizingMaskIntoConstraints = false
+        backView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            frontView.topAnchor.constraint(equalTo: topAnchor),
+            frontView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            frontView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            frontView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            backView.topAnchor.constraint(equalTo: topAnchor),
+            backView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+        
+        backView.isHidden = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(flipCard))
+        addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func flipCard() {
+        isFlipped.toggle()
+        
+        let fromView = isFlipped ? frontView : backView
+        let toView = isFlipped ? backView : frontView
+        
+        UIView.transition(from: fromView, to: toView, duration: 0.6, options: [.transitionFlipFromLeft, .showHideTransitionViews], completion: nil)
+    }
+}
