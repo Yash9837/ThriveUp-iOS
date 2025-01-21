@@ -1,12 +1,6 @@
-//
-//  LoginViewController.swift
-//  ThriveUp
-//
-//  Created by palak seth on 15/11/24.
-//
-
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 class LoginViewController: UIViewController {
     
@@ -130,7 +124,6 @@ class LoginViewController: UIViewController {
     }
     
     private func setupActions() {
-        // Add action targets with `self` as the target instance
         segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
     }
@@ -158,19 +151,37 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            if self?.isUserSelected == true {
-                self?.navigateToUserTabBar()
-            } else {
-                self?.navigateToOrganizerTabBar()
+            if let user = result?.user {
+                if self?.isUserSelected == true {
+                    self?.checkUserInterests(uid: user.uid) { hasInterests in
+                        if hasInterests {
+                            self?.navigateToUserTabBar()
+                        } else {
+//                            self?.navigateToInterestViewController(user: user)
+                            self?.navigateToUserTabBar()
+                        }
+                    }
+                } else {
+                    self?.navigateToOrganizerTabBar()
+                }
             }
         }
     }
     
     // MARK: - Navigation Methods
-    private func navigateToUserTabBar() {
-        let userTabBarController = UserTabBarController()
+    private func navigateToInterestViewController(user: FirebaseAuth.User) {
+        let interestViewController = InterestsViewController()
+        interestViewController.userID = user.uid // Pass the user ID
         if let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate {
-            sceneDelegate.window?.rootViewController = userTabBarController
+            sceneDelegate.window?.rootViewController = interestViewController
+            sceneDelegate.window?.makeKeyAndVisible()
+        }
+    }
+    
+    private func navigateToUserTabBar() {
+        let userTabBar = UserTabBarController()
+        if let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate {
+            sceneDelegate.window?.rootViewController = userTabBar
             sceneDelegate.window?.makeKeyAndVisible()
         }
     }
@@ -189,5 +200,17 @@ class LoginViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
+    
+    func checkUserInterests(uid: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        let userRef = db.collection("Interest").document(uid)
+        
+        userRef.getDocument { document, error in
+            if let document = document, document.exists, let data = document.data(), let interests = data["interests"] as? [String], !interests.isEmpty {
+                completion(true)
+            } else {
+                completion(false)
+            }
+        }
+    }
 }
-

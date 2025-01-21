@@ -6,22 +6,16 @@
 //
 import UIKit
 import MapKit
+import FirebaseFirestore
 
 class EventDetailViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
-    var event: EventModel? // Holds the event data passed from the previous screen
+
+    // MARK: - Properties
+    var eventId: String? // Event ID passed from the previous page
+    private let db = Firestore.firestore()
+    var event: EventModel?
 
     // MARK: - UI Elements
-    private let segmentedControl: UISegmentedControl = {
-        let control = UISegmentedControl(items: ["Details", "Updates", "Photos"])
-        control.selectedSegmentIndex = 0
-        control.selectedSegmentTintColor = .black
-        control.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
-        control.setTitleTextAttributes([.foregroundColor: UIColor.black], for: .normal)
-        control.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
-        return control
-    }()
-    
     private let eventImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -29,61 +23,139 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
         return imageView
     }()
 
+    private let detailSectionView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 20
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.1
+        view.layer.shadowOffset = CGSize(width: 0, height: -2)
+        view.layer.shadowRadius = 5
+        return view
+    }()
+
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 22)
-        label.textAlignment = .left
+        label.font = UIFont.boldSystemFont(ofSize: 24)
         label.numberOfLines = 0
         return label
     }()
 
-    private let categoryLabel: UILabel = {
+    private let organizerTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Organizer"
+        label.font = UIFont.boldSystemFont(ofSize: 18)
+        return label
+    }()
+
+    private let organizerImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 20
+        imageView.backgroundColor = .lightGray
+        return imageView
+    }()
+
+    private let organizerNameLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 20)
+        label.textColor = .black
+        return label
+    }()
+
+    private let descriptionTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Description"
+        label.font = UIFont.boldSystemFont(ofSize: 18)
+        return label
+    }()
+
+    private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16)
         label.textColor = .darkGray
+        label.numberOfLines = 0
         return label
     }()
 
-    private let organizerLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.textColor = .gray
-        return label
-    }()
-
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.numberOfLines = 1
-        label.textAlignment = .left
-        label.textColor = .black
-        return label
+    private let locationIcon: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "mappin.and.ellipse")
+        imageView.tintColor = .orange
+        imageView.backgroundColor = UIColor.orange.withAlphaComponent(0.2)
+        imageView.layer.cornerRadius = 10
+        imageView.clipsToBounds = true
+        return imageView
     }()
 
     private let locationLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14)
-        label.numberOfLines = 2
-        label.textAlignment = .left
+        label.font = UIFont.systemFont(ofSize: 16)
         label.textColor = .black
+        return label
+    }()
+
+    private let dateIcon: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "calendar")
+        imageView.tintColor = .orange
+        imageView.backgroundColor = UIColor.orange.withAlphaComponent(0.2)
+        imageView.layer.cornerRadius = 10
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+
+    private let dateLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .black
+        return label
+    }()
+
+    private let mapTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Map"
+        label.font = UIFont.boldSystemFont(ofSize: 18)
         return label
     }()
 
     private let mapView: MKMapView = {
         let map = MKMapView()
         map.layer.cornerRadius = 10
-        map.clipsToBounds = true
+        map.isUserInteractionEnabled = false
         return map
     }()
 
-    private let speakersCollectionView: UICollectionView
-    private let registerButton: UIButton = UIButton()
+    private let speakersTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Speakers"
+        label.font = UIFont.boldSystemFont(ofSize: 18)
+        return label
+    }()
 
+    private let speakersCollectionView: UICollectionView
+    
+
+    private let registerButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Register", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.backgroundColor = .orange
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 10
+        
+        return button
+    }()
     // MARK: - Initializer
     init() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 80, height: 120)
+        layout.itemSize = CGSize(width: 80, height: 100)
         layout.minimumInteritemSpacing = 16
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         speakersCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -98,24 +170,25 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        configureUIWithData()
         setupRegisterButton()
-        setupMapTapGesture()
+        fetchEventDetails()
     }
 
     // MARK: - Setup UI
     private func setupUI() {
         view.backgroundColor = .white
-        
-        // Configure speakers collection view
-        speakersCollectionView.dataSource = self
-        speakersCollectionView.delegate = self
-        speakersCollectionView.register(SpeakerCell.self, forCellWithReuseIdentifier: SpeakerCell.identifier)
-        speakersCollectionView.backgroundColor = .clear
 
         // Add subviews
-        [eventImageView, segmentedControl, titleLabel, categoryLabel, organizerLabel, dateLabel, locationLabel, mapView, speakersCollectionView, registerButton].forEach {
-            view.addSubview($0)
+        view.addSubview(eventImageView)
+        view.addSubview(detailSectionView)
+        view.addSubview(registerButton)
+        detailSectionView.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+
+        [titleLabel, organizerTitleLabel, organizerImageView, organizerNameLabel,
+         descriptionTitleLabel, descriptionLabel, locationIcon, locationLabel, dateIcon, dateLabel,
+         mapTitleLabel, mapView, speakersTitleLabel, speakersCollectionView].forEach {
+            contentView.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
@@ -123,86 +196,242 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
     }
 
     private func setupConstraints() {
+        eventImageView.translatesAutoresizingMaskIntoConstraints = false
+        detailSectionView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        registerButton.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
             // Event Image View
-            eventImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            eventImageView.topAnchor.constraint(equalTo: view.topAnchor),
             eventImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             eventImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            eventImageView.heightAnchor.constraint(equalToConstant: 250),
+            eventImageView.heightAnchor.constraint(equalToConstant: 300),
 
-            // Segmented Control
-            segmentedControl.topAnchor.constraint(equalTo: eventImageView.bottomAnchor, constant: 8),
-            segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            segmentedControl.heightAnchor.constraint(equalToConstant: 36),
+            // Detail Section View
+            detailSectionView.topAnchor.constraint(equalTo: eventImageView.bottomAnchor, constant: -30),
+            detailSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            detailSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            detailSectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // Title Label
-            titleLabel.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            // Scroll View inside Detail Section
+            scrollView.topAnchor.constraint(equalTo: detailSectionView.topAnchor, constant: 16),
+            scrollView.leadingAnchor.constraint(equalTo: detailSectionView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: detailSectionView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: detailSectionView.bottomAnchor),
 
-            // Category Label
-            categoryLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            categoryLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            categoryLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            // Content View inside Scroll View
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
 
-            // Organizer Label
-            organizerLabel.topAnchor.constraint(equalTo: categoryLabel.bottomAnchor, constant: 8),
-            organizerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            organizerLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-            // Date Label
-            dateLabel.topAnchor.constraint(equalTo: organizerLabel.bottomAnchor, constant: 16),
-            dateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-
-            // Location Label
-            locationLabel.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 8),
-            locationLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-
-            // Map View
-            /*mapView.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 16)*/
-            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 240),
-            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            mapView.widthAnchor.constraint(equalToConstant: 140),
-                        mapView.heightAnchor.constraint(equalToConstant: 100), // Adjusted size
-
-            // Speakers Collection View
-            speakersCollectionView.topAnchor.constraint(equalTo: mapView.bottomAnchor, constant: 16),
-            speakersCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            speakersCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            speakersCollectionView.heightAnchor.constraint(equalToConstant: 120),
-
-            // Register Button
-            registerButton.topAnchor.constraint(equalTo: speakersCollectionView.bottomAnchor, constant: 24),
+            // Register Button (Fixed at Bottom)
             registerButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             registerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            registerButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             registerButton.heightAnchor.constraint(equalToConstant: 50),
-            registerButton.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+
+            // Title Section
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            // Organizer Section
+            organizerTitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            organizerTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            organizerImageView.topAnchor.constraint(equalTo: organizerTitleLabel.bottomAnchor, constant: 8),
+            organizerImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            organizerImageView.widthAnchor.constraint(equalToConstant: 40),
+            organizerImageView.heightAnchor.constraint(equalToConstant: 40),
+
+            organizerNameLabel.centerYAnchor.constraint(equalTo: organizerImageView.centerYAnchor),
+            organizerNameLabel.leadingAnchor.constraint(equalTo: organizerImageView.trailingAnchor, constant: 8),
+
+            // Description Section
+            descriptionTitleLabel.topAnchor.constraint(equalTo: organizerImageView.bottomAnchor, constant: 16),
+            descriptionTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            descriptionLabel.topAnchor.constraint(equalTo: descriptionTitleLabel.bottomAnchor, constant: 8),
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            // Location Section
+            locationIcon.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 16),
+            locationIcon.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            locationIcon.widthAnchor.constraint(equalToConstant: 40),
+            locationIcon.heightAnchor.constraint(equalToConstant: 40),
+
+            locationLabel.centerYAnchor.constraint(equalTo: locationIcon.centerYAnchor),
+            locationLabel.leadingAnchor.constraint(equalTo: locationIcon.trailingAnchor, constant: 8),
+
+            // Date Section
+            dateIcon.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 16),
+            dateIcon.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            dateIcon.widthAnchor.constraint(equalToConstant: 40),
+            dateIcon.heightAnchor.constraint(equalToConstant: 40),
+
+            dateLabel.centerYAnchor.constraint(equalTo: dateIcon.centerYAnchor),
+            dateLabel.leadingAnchor.constraint(equalTo: dateIcon.trailingAnchor, constant: 8),
+
+            // Map Section
+            mapTitleLabel.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 16),
+            mapTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            mapView.topAnchor.constraint(equalTo: mapTitleLabel.bottomAnchor, constant: 8),
+            mapView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            mapView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            mapView.heightAnchor.constraint(equalToConstant: 200),
+
+            // Speakers Section
+            speakersTitleLabel.topAnchor.constraint(equalTo: mapView.bottomAnchor, constant: 16),
+            speakersTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+
+            speakersCollectionView.topAnchor.constraint(equalTo: speakersTitleLabel.bottomAnchor, constant: 8),
+            speakersCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            speakersCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            speakersCollectionView.heightAnchor.constraint(equalToConstant: 120),
+
+            contentView.bottomAnchor.constraint(equalTo: speakersCollectionView.bottomAnchor, constant: 80)
         ])
     }
 
-    // MARK: - Configure Data
-    private func configureUIWithData() {
+    private func fetchEventDetails() {
+        guard let eventId = eventId else { return }
+        db.collection("events").document(eventId).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error fetching event: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = snapshot?.data() else {
+                print("No data found for eventId: \(eventId)")
+                return
+            }
+            
+            // Parse the `speakers` array
+            let speakers: [Speaker] = (data["speakers"] as? [[String: Any]])?.compactMap { speakerDict in
+                guard let name = speakerDict["name"] as? String,
+                      let imageURL = speakerDict["imageURL"] as? String else {
+                    return nil
+                }
+                return Speaker(name: name, imageURL: imageURL)
+            } ?? []
+            
+            // Debugging: Print the parsed speakers
+            print("Parsed Speakers: \(speakers)")
+
+            // Fetch organizer details (UID from event document)
+            let uid = data["uid"] as? String ?? ""
+            self.fetchOrganizerDetails(uid: uid)
+
+            // Initialize the EventModel
+            let event = EventModel(
+                eventId: data["eventId"] as? String ?? "",
+                title: data["title"] as? String ?? "Untitled",
+                category: data["category"] as? String ?? "Uncategorized",
+                attendanceCount: data["attendanceCount"] as? Int ?? 0,
+                organizerName: data["organizerName"] as? String ?? "Unknown Organizer",
+                date: data["date"] as? String ?? "Unknown Date",
+                time: data["time"] as? String ?? "Unknown Time",
+                location: data["location"] as? String ?? "Unknown Location",
+                locationDetails: data["locationDetails"] as? String ?? "",
+                imageName: data["imageName"] as? String ?? "",
+                speakers: speakers,
+                userId : "",
+                description: data["description"] as? String ?? "",
+                latitude: data["latitude"] as? Double,
+                longitude: data["longitude"] as? Double,
+                
+                tags: []
+            )
+            
+            self.event = event
+
+            // Update the UI
+            DispatchQueue.main.async {
+                self.updateUI()
+            }
+        }
+    }
+
+    private func fetchOrganizerDetails(uid: String) {
+        guard !uid.isEmpty else {
+            print("UID is empty. Cannot fetch organizer details.")
+            return
+        }
+        
+        db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error fetching organizer details: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = snapshot?.data() else {
+                print("No data found for UID: \(uid)")
+                return
+            }
+            
+            // Extract organizer details
+            let organizerName = data["name"] as? String ?? "Unknown Organizer"
+            let profileImageURL = data["profileImageURL"] as? String ?? ""
+
+            // Update the organizer UI
+            DispatchQueue.main.async {
+                self.organizerNameLabel.text = organizerName
+                
+                if let url = URL(string: profileImageURL) {
+                    DispatchQueue.global().async {
+                        if let data = try? Data(contentsOf: url) {
+                            DispatchQueue.main.async {
+                                self.organizerImageView.image = UIImage(data: data)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func updateUI() {
         guard let event = event else { return }
-
         titleLabel.text = event.title
-        categoryLabel.text = "\(event.category) • \(event.attendanceCount) people"
-        organizerLabel.text = "Organized by \(event.organizerName)"
-        dateLabel.text = "\(event.date), \(event.time)"
+        descriptionLabel.text = event.description
         locationLabel.text = event.location
-        eventImageView.image = UIImage(named: event.imageName)
-
+        dateLabel.text = "\(event.date), \(event.time)"
+        
         if let latitude = event.latitude, let longitude = event.longitude {
             let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
             let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 500, longitudinalMeters: 500)
             mapView.setRegion(region, animated: false)
+
             let annotation = MKPointAnnotation()
             annotation.coordinate = coordinate
             annotation.title = event.location
             mapView.addAnnotation(annotation)
         }
+        
+        if let imageUrl = URL(string: event.imageName) {
+            DispatchQueue.global().async {
+                if let data = try? Data(contentsOf: imageUrl) {
+                    DispatchQueue.main.async {
+                        self.eventImageView.image = UIImage(data: data)
+                    }
+                }
+            }
+        }
+        
+        // Reload the collection view to display speakers
         speakersCollectionView.reloadData()
     }
+
+    
 
     private func setupRegisterButton() {
         registerButton.setTitle("Register", for: .normal)
@@ -211,9 +440,10 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
         registerButton.layer.cornerRadius = 10
         registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
     }
-
     @objc private func registerButtonTapped() {
         guard let event = event else { return }
+        
+        // Define form fields with placeholders and empty values
         let formFields = [
             FormField(placeholder: "Name", value: ""),
             FormField(placeholder: "Last Name", value: ""),
@@ -223,25 +453,13 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
             FormField(placeholder: "Department", value: ""),
             FormField(placeholder: "Specialization", value: "")
         ]
+        
+        // Initialize and push the registration view controller
+        
         let registrationVC = RegistrationViewController(formFields: formFields, event: event)
-        navigationController?.pushViewController(registrationVC, animated: true)
+                navigationController?.pushViewController(registrationVC, animated: true)
     }
 
-    @objc private func segmentChanged() {
-        print("Segment changed to index \(segmentedControl.selectedSegmentIndex)")
-    }
-    private func setupMapTapGesture() {
-                let tapGesture = UITapGestureRecognizer(target: self, action: #selector(openInAppleMaps))
-                mapView.addGestureRecognizer(tapGesture)
-                mapView.isUserInteractionEnabled = true
-            }
-@objc private func openInAppleMaps() {
-                guard let latitude = event?.latitude, let longitude = event?.longitude else { return }
-                let urlString = "http://maps.apple.com/?ll=\(latitude),\(longitude)"
-                if let url = URL(string: urlString) {
-                    UIApplication.shared.open(url)
-                }
-            }
 
     // MARK: - Collection View DataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -257,3 +475,60 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
     }
 }
 
+class SpeakerCell: UICollectionViewCell {
+    static let identifier = "SpeakerCell"
+    
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 40
+        imageView.clipsToBounds = true
+        imageView.backgroundColor = .lightGray
+        return imageView
+    }()
+    
+    private let nameLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        label.textAlignment = .center
+        label.numberOfLines = 1
+        return label
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        contentView.addSubview(imageView)
+        contentView.addSubview(nameLabel)
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 80),
+            imageView.heightAnchor.constraint(equalToConstant: 80),
+            
+            nameLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
+            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 4),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -4)
+        ])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func configure(with speaker: Speaker) {
+        nameLabel.text = speaker.name
+        if let url = URL(string: speaker.imageURL) {
+            DispatchQueue.global().async {
+                if let data = try? Data(contentsOf: url) {
+                    DispatchQueue.main.async {
+                        self.imageView.image = UIImage(data: data)
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,11 +1,3 @@
-//
-//  EventListViewController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 14/12/24.
-//
-// Fetch and list events with the updated EventModel structure
-
 import FirebaseFirestore
 import UIKit
 
@@ -13,28 +5,30 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
 
     // MARK: - Properties
     private var eventsByCategory: [String: [EventModel]] = [:]
+    private var filteredEventsByCategory: [String: [EventModel]] = [:]
     private let predefinedCategories = [
         "Trending", "Fun and Entertainment", "Tech and Innovation",
-        "Club and Societies", "Cultural"
-, "Networking", "Sports","Career Connect", "Wellness", "Other"
+        "Club and Societies", "Cultural", "Networking", "Sports", "Career Connect", "Wellness", "Other"
     ]
     private var categories: [String] = []
+    private var filteredCategories: [String] = []
     private var collectionView: UICollectionView!
     private let searchBar = UISearchBar()
+    private let filterButton = UIButton(type: .system)
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-
+        
         setupNavigationBar()
         setupSearchBar()
+        setupFilterButton()
         setupCollectionView()
         fetchEventsFromFirestore()
     }
 
     // MARK: - Navigation Bar
     private func setupNavigationBar() {
-        // Logo Image
         let logoImageView = UIImageView(image: UIImage(named: "thriveUpLogo"))
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -52,7 +46,6 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: logoContainerView)
 
-        // Bookmark and Notification Buttons
         let bookmarkButton = UIButton(type: .system)
         bookmarkButton.setImage(UIImage(systemName: "bookmark"), for: .normal)
         bookmarkButton.tintColor = .black
@@ -90,18 +83,39 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
         NSLayoutConstraint.activate([
             searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -48),
             searchBar.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+
+    // MARK: - Filter Button
+    private func setupFilterButton() {
+        filterButton.setImage(UIImage(systemName: "line.horizontal.3.decrease.circle"), for: .normal)
+        filterButton.tintColor = .black
+        filterButton.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
+        view.addSubview(filterButton)
+
+        filterButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            filterButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
+            filterButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            filterButton.widthAnchor.constraint(equalToConstant: 40),
+            filterButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+
+    @objc private func filterButtonTapped() {
+        let filterVC = FilterViewController()
+        filterVC.delegate = self
+        present(filterVC, animated: true, completion: nil)
     }
 
     // MARK: - Collection View
     private func setupCollectionView() {
         let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
-            let sectionName = self.categories[sectionIndex]
+            let sectionName = self.filteredCategories[sectionIndex]
 
             if sectionName == "Trending" {
-                // Layout for "Trending" section
                 let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(180))
                 let item = NSCollectionLayoutItem(layoutSize: itemSize)
                 item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
@@ -112,14 +126,12 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
                 let section = NSCollectionLayoutSection(group: group)
                 section.orthogonalScrollingBehavior = .continuous
 
-                // Header
                 let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
                 let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
                 section.boundarySupplementaryItems = [header]
 
                 return section
             } else {
-                // Layout for other categories
                 let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5), heightDimension: .absolute(200))
                 let item = NSCollectionLayoutItem(layoutSize: itemSize)
                 item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
@@ -130,7 +142,6 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
                 let section = NSCollectionLayoutSection(group: group)
                 section.orthogonalScrollingBehavior = .continuous
 
-                // Header
                 let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(44))
                 let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
                 section.boundarySupplementaryItems = [header]
@@ -182,9 +193,11 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
     }
 
     private func groupEventsByCategory(_ events: [EventModel]) {
-        // Group events by category and order by predefined categories
         eventsByCategory = Dictionary(grouping: events, by: { $0.category })
+        filteredEventsByCategory = eventsByCategory
         categories = predefinedCategories.filter { eventsByCategory.keys.contains($0) }
+        filteredCategories = categories
+        
         DispatchQueue.main.async {
             self.collectionView.reloadData()
         }
@@ -192,18 +205,18 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
 
     // MARK: - Collection View DataSource
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return categories.count
+        return filteredCategories.count
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        let category = categories[section]
-        return eventsByCategory[category]?.count ?? 0
+        let category = filteredCategories[section]
+        return filteredEventsByCategory[category]?.count ?? 0
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EventCell.identifier, for: indexPath) as! EventCell
-        let category = categories[indexPath.section]
-        if let event = eventsByCategory[category]?[indexPath.item] {
+        let category = filteredCategories[indexPath.section]
+        if let event = filteredEventsByCategory[category]?[indexPath.item] {
             cell.configure(with: event)
         }
         return cell
@@ -211,20 +224,157 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
 
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.identifier, for: indexPath) as! CategoryHeader
-        header.titleLabel.text = categories[indexPath.section]
+        header.titleLabel.text = filteredCategories[indexPath.section]
+
+        header.titleLabel.font = UIFont.boldSystemFont(ofSize: header.titleLabel.font.pointSize)
+
+        if filteredCategories[indexPath.section] != "Trending" {
+            header.arrowButton.isHidden = false
+            header.arrowButton.tag = indexPath.section
+            header.arrowButton.addTarget(self, action: #selector(arrowButtonTapped(_:)), for: .touchUpInside)
+            header.arrowButton.tintColor = .systemOrange
+        } else {
+            header.arrowButton.isHidden = true
+        }
+
         return header
     }
 
+    @objc func arrowButtonTapped(_ sender: UIButton) {
+        let section = sender.tag
+        let category = filteredCategories[section]
+
+        let eventsListVC = EventsCardsViewController()
+        eventsListVC.category = CategoryModel(name: category, events: eventsByCategory[category] ?? [])
+        navigationController?.pushViewController(eventsListVC, animated: true)
+    }
+
+    // MARK: - Collection View Delegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let category = categories[indexPath.section]
-        if let event = eventsByCategory[category]?[indexPath.item] {
-            let detailVC = EventDetailViewController()
-            detailVC.event = event
-            navigationController?.pushViewController(detailVC, animated: true)
+        let category = filteredCategories[indexPath.section]
+        if let event = filteredEventsByCategory[category]?[indexPath.item] {
+            let eventDetailsVC = EventDetailViewController()
+            eventDetailsVC.eventId = event.eventId
+            navigationController?.pushViewController(eventDetailsVC, animated: true)
         }
+    }
+
+    // MARK: - Search Bar Delegate
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            filteredCategories = categories
+            filteredEventsByCategory = eventsByCategory
+        } else {
+            filteredEventsByCategory = eventsByCategory.mapValues { events in
+                events.filter { event in
+                    event.title.lowercased().contains(searchText.lowercased())
+                }
+            }
+            filteredCategories = filteredEventsByCategory.keys.filter { !filteredEventsByCategory[$0]!.isEmpty }
+        }
+        collectionView.reloadData()
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
     }
 }
 
-#Preview{
-    EventListViewController()
+protocol FilterViewControllerDelegate: AnyObject {
+    func didApplyFilters(_ filters: [String])
+}
+
+class FilterViewController: UIViewController {
+    weak var delegate: FilterViewControllerDelegate?
+    private let filterOptions: [String] = ["Trending", "Fun and Entertainment", "Tech and Innovation", "Club and Societies", "Cultural", "Networking", "Sports", "Career Connect", "Wellness", "Other"]
+    private var selectedFilters: [String] = []
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        setupUI()
+    }
+
+    private func setupUI() {
+        let titleLabel = UILabel()
+        titleLabel.text = "Select Filters"
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(titleLabel)
+
+        let filterTableView = UITableView()
+        filterTableView.delegate = self
+        filterTableView.dataSource = self
+        filterTableView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(filterTableView)
+
+        let applyButton = UIButton(type: .system)
+        applyButton.setTitle("Apply Filters", for: .normal)
+        applyButton.addTarget(self, action: #selector(applyButtonTapped), for: .touchUpInside)
+        applyButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(applyButton)
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            filterTableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            filterTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            filterTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            filterTableView.bottomAnchor.constraint(equalTo: applyButton.topAnchor, constant: -20),
+
+            applyButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            applyButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+
+    @objc private func applyButtonTapped() {
+        delegate?.didApplyFilters(selectedFilters)
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+extension FilterViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return filterOptions.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+        cell.textLabel?.text = filterOptions[indexPath.row]
+
+        if selectedFilters.contains(filterOptions[indexPath.row]) {
+            cell.accessoryType = .checkmark
+        } else {
+            cell.accessoryType = .none
+        }
+
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedOption = filterOptions[indexPath.row]
+
+        if let index = selectedFilters.firstIndex(of: selectedOption) {
+            selectedFilters.remove(at: index)
+        } else {
+            selectedFilters.append(selectedOption)
+        }
+
+        tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+}
+
+// MARK: - FilterViewControllerDelegate
+extension EventListViewController: FilterViewControllerDelegate {
+    func didApplyFilters(_ filters: [String]) {
+        if filters.isEmpty {
+            filteredCategories = categories
+            filteredEventsByCategory = eventsByCategory
+        } else {
+            filteredCategories = filters
+            filteredEventsByCategory = eventsByCategory.filter { filters.contains($0.key) }
+        }
+        collectionView.reloadData()
+    }
 }

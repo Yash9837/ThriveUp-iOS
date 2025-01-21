@@ -69,11 +69,29 @@
 		57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */; };
 		57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */; };
 		57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */; };
+		7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7841AAA12D36902E00438FE0 /* InterestsViewController.swift */; };
+		78B8D2D92D38E7510004AD09 /* Instructions in Frameworks */ = {isa = PBXBuildFile; productRef = 78B8D2D82D38E7510004AD09 /* Instructions */; };
+		78BE28962D385318002BF1EB /* TagViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */; };
+		78ED42F62D400E9800FF3017 /* EventsCardsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		78BE28992D386D70002BF1EB /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		39DF78392CE9AF5E004B8244 /* SwipeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeViewController.swift; sourceTree = "<group>"; };
 		39DF783B2CE9B011004B8244 /* BookmarkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewController.swift; sourceTree = "<group>"; };
+		4CF53B076F3A5BE3385209B6 /* Pods-ThriveUp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveUp.debug.xcconfig"; path = "Target Support Files/Pods-ThriveUp/Pods-ThriveUp.debug.xcconfig"; sourceTree = "<group>"; };
 		572D8A342D0D5D3800DAB286 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		572D8A482D0D9E5B00DAB286 /* EventRegistrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRegistrationViewController.swift; sourceTree = "<group>"; };
 		572D8A4C2D0DA2FD00DAB286 /* EventListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListViewController.swift; sourceTree = "<group>"; };
@@ -128,6 +146,11 @@
 		57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEventViewController.swift; sourceTree = "<group>"; };
 		57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPostedViewController.swift; sourceTree = "<group>"; };
 		57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerProfileViewController.swift; sourceTree = "<group>"; };
+		7841AAA12D36902E00438FE0 /* InterestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestsViewController.swift; sourceTree = "<group>"; };
+		78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagViewControllerDelegate.swift; sourceTree = "<group>"; };
+		78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsCardsViewController.swift; sourceTree = "<group>"; };
+		9A23441F065AEE873F26A07E /* Pods_ThriveUp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriveUp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E800843DDED1A2BA6196E1E /* Pods-ThriveUp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveUp.release.xcconfig"; path = "Target Support Files/Pods-ThriveUp/Pods-ThriveUp.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +165,7 @@
 				572D8A3A2D0D5E4300DAB286 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 				572D8A472D0D78F900DAB286 /* FirebaseStorage in Frameworks */,
 				572D8A422D0D5E4300DAB286 /* FirebaseFirestore in Frameworks */,
+				78B8D2D92D38E7510004AD09 /* Instructions in Frameworks */,
 				572D8A442D0D5E4300DAB286 /* FirebaseFirestoreCombine-Community in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -149,19 +173,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		572D8A452D0D78F900DAB286 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		577DA1B12CE3999000760BFA = {
 			isa = PBXGroup;
 			children = (
 				577DA1BC2CE3999000760BFA /* ThriveUp */,
 				577DA1BB2CE3999000760BFA /* Products */,
-				572D8A452D0D78F900DAB286 /* Frameworks */,
+				9D4247585D83A2931507488C /* Pods */,
+				A17C12BED2E72C4DA6657563 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -176,7 +194,10 @@
 		577DA1BC2CE3999000760BFA /* ThriveUp */ = {
 			isa = PBXGroup;
 			children = (
+				78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */,
 				577DA1BD2CE3999000760BFA /* AppDelegate.swift */,
+				7841AAA12D36902E00438FE0 /* InterestsViewController.swift */,
+				78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */,
 				57D9779C2CEB085A004B1314 /* File.swift */,
 				577DA2D72CE88F2100760BFA /* ChatViewController.swift */,
 				577DA1BF2CE3999000760BFA /* SceneDelegate.swift */,
@@ -236,6 +257,23 @@
 			path = workingModel;
 			sourceTree = "<group>";
 		};
+		9D4247585D83A2931507488C /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				4CF53B076F3A5BE3385209B6 /* Pods-ThriveUp.debug.xcconfig */,
+				9E800843DDED1A2BA6196E1E /* Pods-ThriveUp.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		A17C12BED2E72C4DA6657563 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9A23441F065AEE873F26A07E /* Pods_ThriveUp.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -243,9 +281,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 577DA1CE2CE3999100760BFA /* Build configuration list for PBXNativeTarget "ThriveUp" */;
 			buildPhases = (
+				8D1495D94DF6C27B83E0D9A3 /* [CP] Check Pods Manifest.lock */,
 				577DA1B62CE3999000760BFA /* Sources */,
 				577DA1B72CE3999000760BFA /* Frameworks */,
 				577DA1B82CE3999000760BFA /* Resources */,
+				78BE28992D386D70002BF1EB /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -261,6 +301,7 @@
 				572D8A412D0D5E4300DAB286 /* FirebaseFirestore */,
 				572D8A432D0D5E4300DAB286 /* FirebaseFirestoreCombine-Community */,
 				572D8A462D0D78F900DAB286 /* FirebaseStorage */,
+				78B8D2D82D38E7510004AD09 /* Instructions */,
 			);
 			productName = workingModel;
 			productReference = 577DA1BA2CE3999000760BFA /* ThriveUp.app */;
@@ -292,6 +333,7 @@
 			mainGroup = 577DA1B12CE3999000760BFA;
 			packageReferences = (
 				572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */,
 			);
 			productRefGroup = 577DA1BB2CE3999000760BFA /* Products */;
 			projectDirPath = "";
@@ -315,6 +357,31 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		8D1495D94DF6C27B83E0D9A3 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ThriveUp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		577DA1B62CE3999000760BFA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -335,6 +402,7 @@
 				577DA1D22CE3BDBB00760BFA /* DataModel.swift in Sources */,
 				57D977A32CEB7647004B1314 /* OnboardingViewController.swift in Sources */,
 				577DA2E42CE890BF00760BFA /* ChatCell.swift in Sources */,
+				78ED42F62D400E9800FF3017 /* EventsCardsViewController.swift in Sources */,
 				577DA2F22CE8A4A000760BFA /* UserEventViewController.swift in Sources */,
 				577DA2002CE5DF6900760BFA /* FormFieldTableViewCell.swift in Sources */,
 				577DA1DC2CE4837700760BFA /* EventDetailViewController.swift in Sources */,
@@ -347,6 +415,7 @@
 				577DA1BE2CE3999000760BFA /* AppDelegate.swift in Sources */,
 				572D8A512D0DFBE000DAB286 /* EventPostViewController.swift in Sources */,
 				577DA2DA2CE88F7A00760BFA /* SavedRegistrationViewController.swift in Sources */,
+				78BE28962D385318002BF1EB /* TagViewControllerDelegate.swift in Sources */,
 				57D977992CE9C9BF004B1314 /* RegistrationDataViewController.swift in Sources */,
 				57D977A72CEB8121004B1314 /* OnboardingPageViewController.swift in Sources */,
 				577DA2D82CE88F2100760BFA /* ChatViewController.swift in Sources */,
@@ -360,6 +429,7 @@
 				577DA2DC2CE88FC500760BFA /* SavedRegistrationCell.swift in Sources */,
 				57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */,
 				577DA2EC2CE891FF00760BFA /* NotificationsViewController.swift in Sources */,
+				7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */,
 				572D8A4D2D0DA2FD00DAB286 /* EventListViewController.swift in Sources */,
 				577DA2E02CE8901800760BFA /* ChatDetailViewController.swift in Sources */,
 				57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */,
@@ -509,14 +579,17 @@
 		};
 		577DA1CF2CE3999100760BFA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4CF53B076F3A5BE3385209B6 /* Pods-ThriveUp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = YFY6QY43LP;
+				DEVELOPMENT_TEAM = 5P9MT7PS5M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = workingModel/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to provide accurate event location services.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to center the map and select event locations.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -536,14 +609,18 @@
 		};
 		577DA1D02CE3999100760BFA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9E800843DDED1A2BA6196E1E /* Pods-ThriveUp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 5P9MT7PS5M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = workingModel/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to provide accurate event location services.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to center the map and select event locations.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -553,7 +630,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "-";
+				PRODUCT_BUNDLE_IDENTIFIER = me.yash.workingModel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -592,6 +669,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 11.6.0;
+			};
+		};
+		78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ephread/Instructions.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -636,6 +721,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		78B8D2D82D38E7510004AD09 /* Instructions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */;
+			productName = Instructions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -8,11 +8,13 @@
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 
-class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, RegisteredEventCellDelegate {
+class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIImagePickerControllerDelegate, UINavigationControllerDelegate, RegisteredEventCellDelegate {
 
     // MARK: - Properties
     private var registeredEvents: [EventModel] = [] // Stores registered events
+    private var userInterests: [String] = [] // Stores user interests
     private let db = Firestore.firestore()
 
     // UI Elements
@@ -43,6 +45,32 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         return label
     }()
 
+    private let contactDetailsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Contact: Not Available"
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .gray
+        label.numberOfLines = 0
+        return label
+    }()
+
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Description: Not Available"
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .darkGray
+        label.numberOfLines = 0
+        return label
+    }()
+
+    private let friendsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Friends: 0"
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .gray
+        return label
+    }()
+
     private let segmentControl: UISegmentedControl = {
         let control = UISegmentedControl(items: ["Details", "Events"])
         control.selectedSegmentIndex = 0
@@ -51,28 +79,33 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         return control
     }()
 
-    private let aboutLabel: UILabel = {
+    private let detailsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.distribution = .fill
+        stackView.spacing = 12
+        return stackView
+    }()
+
+    private let interestsView: UIView = {
+        let view = UIView()
+        view.isHidden = true
+        return view
+    }()
+
+    private let interestsLabel: UILabel = {
         let label = UILabel()
-        label.text = "About"
-        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.text = "Interests"
+        label.font = UIFont.boldSystemFont(ofSize: 18)
         label.textColor = .black
         return label
     }()
 
-    private let aboutDescriptionLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Passionate college student who thrives on new experiences, attending events, and connecting with people."
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .darkGray
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private let detailsStackView: UIStackView = {
+    private let interestsGridView: UIStackView = {
         let stackView = UIStackView()
-        stackView.axis = .horizontal
+        stackView.axis = .vertical
+        stackView.spacing = 16
         stackView.distribution = .fillEqually
-        stackView.spacing = 20
         return stackView
     }()
 
@@ -82,33 +115,125 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         tableView.isHidden = true
         return tableView
     }()
-
-    // MARK: - Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        configureNavigationBar()
-        setupUI()
-        setupConstraints()
-        loadUserDetails()
-        loadRegisteredEvents()
-    }
-
     // MARK: - Configure Navigation Bar
     private func configureNavigationBar() {
-        navigationItem.title = "Profile"
-        navigationController?.navigationBar.titleTextAttributes = [
-            .font: UIFont.boldSystemFont(ofSize: 24),
-            .foregroundColor: UIColor.black
-        ]
+           navigationItem.title = "Profile"
 
-        let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
-        logoutButton.setTitleTextAttributes([
-            .font: UIFont.systemFont(ofSize: 16),
-            .foregroundColor: UIColor.systemBlue
-        ], for: .normal)
-        navigationItem.rightBarButtonItem = logoutButton
+           let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
+           let editButton = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(handleEdit))
+
+           navigationItem.rightBarButtonItem = logoutButton
+           navigationItem.leftBarButtonItem = editButton
+       }
+    @objc private func handleEdit() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User not authenticated.")
+            return
+        }
+
+        // Fetch user document from Firestore
+        db.collection("users").document(userId).getDocument { [weak self] document, error in
+            guard let self = self else { return }
+
+            if let error = error {
+                print("Error fetching user document: \(error.localizedDescription)")
+                return
+            }
+
+            guard let document = document, document.exists,
+                  let profileImageUrl = document.data()?["profileImageURL"] as? String else {
+                print("No valid profile image URL found.")
+                return
+            }
+
+            let editVC = EditProfileViewController()
+            editVC.name = self.nameLabel.text
+            editVC.descriptionText = self.descriptionLabel.text?.replacingOccurrences(of: "Description: ", with: "")
+            editVC.contact = self.contactDetailsLabel.text?.replacingOccurrences(of: "Contact: ", with: "")
+            editVC.imageUrl = profileImageUrl
+
+            editVC.onSave = { [weak self] updatedDetails in
+                self?.updateProfile(with: updatedDetails)
+            }
+
+            self.navigationController?.pushViewController(editVC, animated: true)
+        }
     }
 
+    private func updateProfile(with details: UserDetails) {
+            guard let userId = Auth.auth().currentUser?.uid else { return }
+
+            let data: [String: Any] = [
+                "name": details.name,
+                "Description": details.description,
+                "ContactDetails": details.contact,
+                "profileImageURL": details.imageUrl
+            ]
+
+            db.collection("users").document(userId).updateData(data) { error in
+                if let error = error {
+                    print("Error updating profile: \(error.localizedDescription)")
+                } else {
+                    self.nameLabel.text = details.name
+                    self.descriptionLabel.text = "Description: \(details.description)"
+                    self.contactDetailsLabel.text = "Contact: \(details.contact)"
+
+                    if let url = URL(string: details.imageUrl) {
+                        self.loadProfileImage(from: url)
+                    } else {
+                        print("Invalid image URL: \(details.imageUrl)")
+                    }
+                }
+            }
+        }
+        private func presentImagePicker() {
+            let imagePicker = UIImagePickerController()
+            imagePicker.delegate = self
+            imagePicker.sourceType = .photoLibrary
+            imagePicker.allowsEditing = true
+
+            present(imagePicker, animated: true)
+        }
+
+        // MARK: - Image Picker Delegate
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            picker.dismiss(animated: true)
+
+            guard
+                let editedImage = info[.editedImage] as? UIImage,
+                let userId = Auth.auth().currentUser?.uid
+            else { return }
+
+            uploadProfileImage(editedImage, for: userId) { imageURL in
+                self.db.collection("users").document(userId).updateData(["profileImageURL": imageURL]) { error in
+                    if let error = error {
+                        print("Error updating image URL: \(error.localizedDescription)")
+                    } else {
+                        self.profileImageView.image = editedImage
+                    }
+                }
+            }
+        }
+
+        private func uploadProfileImage(_ image: UIImage, for userId: String, completion: @escaping (String) -> Void) {
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+
+            let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
+            storageRef.putData(imageData, metadata: nil) { _, error in
+                if let error = error {
+                    print("Error uploading image: \(error.localizedDescription)")
+                    return
+                }
+
+                storageRef.downloadURL { url, error in
+                    if let error = error {
+                        print("Error getting download URL: \(error.localizedDescription)")
+                    } else if let url = url {
+                        completion(url.absoluteString)
+                    }
+                }
+            }
+        }
     @objc private func handleLogout() {
         let userTabBarController = GeneralTabbarController()
 
@@ -119,106 +244,199 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     // MARK: - UI Setup
-    private func setupUI() {
-        view.backgroundColor = .white
-        view.addSubview(profileImageView)
-        view.addSubview(nameLabel)
-        view.addSubview(emailLabel)
-        view.addSubview(segmentControl)
-        view.addSubview(aboutLabel)
-        view.addSubview(aboutDescriptionLabel)
-        view.addSubview(detailsStackView)
-        view.addSubview(eventsTableView)
+    // MARK: - Lifecycle
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            configureNavigationBar()
+            setupUI()
+            setupConstraints()
+            loadUserDetails()
+            loadUserInterests()
+            loadRegisteredEvents()
+        }
 
-        let yearView = createDetailView(title: "III", value: "YEAR")
-        let departmentView = createDetailView(title: "DSBS", value: "DEPARTMENT")
-        let friendsView = createDetailView(title: "50+", value: "FRIENDS")
-        [yearView, departmentView, friendsView].forEach { detailsStackView.addArrangedSubview($0) }
+        // MARK: - UI Setup
+        private func setupUI() {
+            view.backgroundColor = .white
+            view.addSubview(profileImageView)
+            view.addSubview(nameLabel)
+            view.addSubview(emailLabel)
+           
+            view.addSubview(segmentControl)
+            view.addSubview(detailsStackView)
+            view.addSubview(eventsTableView)
+            detailsStackView.addArrangedSubview(descriptionLabel)
+            detailsStackView.addArrangedSubview(friendsLabel)
+            detailsStackView.addArrangedSubview(contactDetailsLabel)
+            detailsStackView.addArrangedSubview(interestsView)
+            
+            interestsView.addSubview(interestsLabel)
+            interestsView.addSubview(interestsGridView)
 
-        eventsTableView.dataSource = self
-        eventsTableView.delegate = self
-    }
+            eventsTableView.dataSource = self
+            eventsTableView.delegate = self
+        }
 
-    private func setupConstraints() {
-        profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        emailLabel.translatesAutoresizingMaskIntoConstraints = false
-        segmentControl.translatesAutoresizingMaskIntoConstraints = false
-        aboutLabel.translatesAutoresizingMaskIntoConstraints = false
-        aboutDescriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        detailsStackView.translatesAutoresizingMaskIntoConstraints = false
-        eventsTableView.translatesAutoresizingMaskIntoConstraints = false
+        private func setupConstraints() {
+            profileImageView.translatesAutoresizingMaskIntoConstraints = false
+            nameLabel.translatesAutoresizingMaskIntoConstraints = false
+            emailLabel.translatesAutoresizingMaskIntoConstraints = false
+            contactDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
+            descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+            friendsLabel.translatesAutoresizingMaskIntoConstraints = false
+            segmentControl.translatesAutoresizingMaskIntoConstraints = false
+            detailsStackView.translatesAutoresizingMaskIntoConstraints = false
+            interestsView.translatesAutoresizingMaskIntoConstraints = false
+            interestsLabel.translatesAutoresizingMaskIntoConstraints = false
+            interestsGridView.translatesAutoresizingMaskIntoConstraints = false
+            eventsTableView.translatesAutoresizingMaskIntoConstraints = false
 
-        NSLayoutConstraint.activate([
-            profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            profileImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            profileImageView.widthAnchor.constraint(equalToConstant: 80),
-            profileImageView.heightAnchor.constraint(equalToConstant: 80),
+            NSLayoutConstraint.activate([
+                profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+                profileImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                profileImageView.widthAnchor.constraint(equalToConstant: 80),
+                profileImageView.heightAnchor.constraint(equalToConstant: 80),
 
-            nameLabel.topAnchor.constraint(equalTo: profileImageView.topAnchor),
-            nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
+                nameLabel.topAnchor.constraint(equalTo: profileImageView.topAnchor, constant: 10),
+                nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
+                nameLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-            emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-            emailLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+                emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+                emailLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+                emailLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
 
-            segmentControl.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 16),
-            segmentControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            segmentControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                segmentControl.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 16),
+                segmentControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                segmentControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-            aboutLabel.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 20),
-            aboutLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                detailsStackView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 20),
+                detailsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                detailsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-            aboutDescriptionLabel.topAnchor.constraint(equalTo: aboutLabel.bottomAnchor, constant: 8),
-            aboutDescriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            aboutDescriptionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                interestsLabel.topAnchor.constraint(equalTo: interestsView.topAnchor),
+                interestsLabel.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
 
-            detailsStackView.topAnchor.constraint(equalTo: aboutDescriptionLabel.bottomAnchor, constant: 20),
-            detailsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            detailsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                interestsGridView.topAnchor.constraint(equalTo: interestsLabel.bottomAnchor, constant: 8),
+                interestsGridView.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
+                interestsGridView.trailingAnchor.constraint(equalTo: interestsView.trailingAnchor),
+                interestsGridView.bottomAnchor.constraint(equalTo: interestsView.bottomAnchor),
 
-            eventsTableView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 16),
-            eventsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            eventsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            eventsTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-    }
+                eventsTableView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 16),
+                eventsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                eventsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                eventsTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+        }
+    // MARK: - Load Interests
+       private func loadUserInterests() {
+           guard let userId = Auth.auth().currentUser?.uid else {
+               print("User not authenticated.")
+               return
+           }
 
-    private func createDetailView(title: String, value: String) -> UIView {
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
-        titleLabel.textColor = .orange
+           db.collection("Interest").document(userId).getDocument { [weak self] document, error in
+               guard let self = self else { return }
 
-        let valueLabel = UILabel()
-        valueLabel.text = value
-        valueLabel.font = UIFont.systemFont(ofSize: 14)
-        valueLabel.textColor = .gray
+               if let error = error {
+                   print("Error fetching user interests: \(error.localizedDescription)")
+                   return
+               }
 
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
-        stackView.axis = .vertical
-        stackView.spacing = 4
-        stackView.alignment = .center
-        return stackView
-    }
+               guard let data = document?.data(), let interests = data["interests"] as? [String] else {
+                   print("No interests data found.")
+                   return
+               }
 
-    // MARK: - Load User Details and Events
+               self.userInterests = interests
+               self.updateInterestsUI()
+           }
+       }
+
+       private func updateInterestsUI() {
+           interestsGridView.arrangedSubviews.forEach { $0.removeFromSuperview() } // Clear existing views
+
+           let columns = 2
+           var currentRowStack: UIStackView?
+
+           for (index, interest) in userInterests.enumerated() {
+               if index % columns == 0 {
+                   currentRowStack = UIStackView()
+                   currentRowStack?.axis = .horizontal
+                   currentRowStack?.spacing = 12
+                   currentRowStack?.distribution = .fillEqually
+                   interestsGridView.addArrangedSubview(currentRowStack!)
+               }
+
+               let button = UIButton(type: .system)
+               button.setTitle(interest, for: .normal)
+               button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+               button.backgroundColor = UIColor.systemGray5
+               button.layer.cornerRadius = 8
+               button.clipsToBounds = true
+
+               currentRowStack?.addArrangedSubview(button)
+           }
+
+           interestsView.isHidden = false
+       }
+
+    // MARK: - Load User Details
     private func loadUserDetails() {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("User not authenticated.")
             return
         }
-
         db.collection("users").document(userId).getDocument { [weak self] document, error in
             if let error = error {
                 print("Error fetching user details: \(error.localizedDescription)")
                 return
             }
 
-            guard let data = document?.data() else { return }
+            guard let data = document?.data() else {
+                print("No user data found for userId: \(userId)")
+                return
+            }
+
             self?.nameLabel.text = data["name"] as? String ?? "Name"
             self?.emailLabel.text = data["email"] as? String ?? "Email"
+            self?.contactDetailsLabel.text = "Contact: \(data["ContactDetails"] as? String ?? "Not Available")"
+            self?.descriptionLabel.text = data["Description"] as? String ?? "No Description Available"
+            self?.friendsLabel.text = "Friends: \(data["friends"] as? String ?? "0")"
+
+            if let profileImageURLString = data["profileImageURL"] as? String,
+               let profileImageURL = URL(string: profileImageURLString) {
+                self?.loadProfileImage(from: profileImageURL)
+            } else {
+                self?.profileImageView.image = UIImage(named: "default_profile")
+            }
         }
     }
+
+    private func loadProfileImage(from url: URL) {
+        // Using URLSession to download the image
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            if let error = error {
+                print("Error downloading profile image: \(error.localizedDescription)")
+                return
+            }
+
+            guard
+                let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode),
+                let data = data,
+                let image = UIImage(data: data)
+            else {
+                print("Invalid response or image data.")
+                return
+            }
+
+            DispatchQueue.main.async {
+                self?.profileImageView.image = image
+            }
+        }
+        task.resume()
+    }
+
+
 
     private func loadRegisteredEvents() {
         guard let userId = Auth.auth().currentUser?.uid else {
@@ -278,9 +496,12 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
                     locationDetails: data["locationDetails"] as? String ?? "",
                     imageName: isImageUrl ? imageNameOrUrl : "",
                     speakers: [],
+                    userId : data["userId"] as? String ?? "",
                     description: data["description"] as? String ?? "",
+                   
                     latitude: data["latitude"] as? Double,
-                    longitude: data["longitude"] as? Double
+                    longitude: data["longitude"] as? Double,
+                    tags: []
                 )
                 self.registeredEvents.append(event)
             }
@@ -360,10 +581,208 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
 
     // MARK: - Segment Control Action
     @objc private func segmentChanged() {
-        let isShowingEvents = segmentControl.selectedSegmentIndex == 1
-        aboutLabel.isHidden = isShowingEvents
-        aboutDescriptionLabel.isHidden = isShowingEvents
-        detailsStackView.isHidden = isShowingEvents
-        eventsTableView.isHidden = !isShowingEvents
+           let isShowingEvents = segmentControl.selectedSegmentIndex == 1
+           detailsStackView.isHidden = isShowingEvents
+           eventsTableView.isHidden = !isShowingEvents
+           if isShowingEvents {
+               loadRegisteredEvents()
+           }
+       }
+}
+
+class EditProfileViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    var name: String?
+       var descriptionText: String?
+       var contact: String?
+       var imageUrl: String?
+       var onSave: ((UserDetails) -> Void)?
+
+       private let profileImageView: UIImageView = {
+           let imageView = UIImageView()
+           imageView.contentMode = .scaleAspectFill
+           imageView.clipsToBounds = true
+           imageView.layer.cornerRadius = 50
+           imageView.layer.borderWidth = 1
+           imageView.layer.borderColor = UIColor.lightGray.cgColor
+           return imageView
+       }()
+
+       private let selectImageButton: UIButton = {
+           let button = UIButton(type: .system)
+           button.setTitle("Select Image", for: .normal)
+           button.addTarget(self, action: #selector(handleSelectImage), for: .touchUpInside)
+           return button
+       }()
+
+       private let nameTextField: UITextField = {
+           let textField = UITextField()
+           textField.borderStyle = .roundedRect
+           textField.layer.borderWidth = 1
+           textField.layer.borderColor = UIColor.lightGray.cgColor
+           textField.placeholder = "Enter name"
+           return textField
+       }()
+
+       private let descriptionTextView: UITextView = {
+           let textView = UITextView()
+           textView.layer.borderWidth = 1
+           textView.layer.borderColor = UIColor.lightGray.cgColor
+           textView.layer.cornerRadius = 8
+           textView.font = UIFont.systemFont(ofSize: 16)
+           return textView
+       }()
+
+       private let contactTextField: UITextField = {
+           let textField = UITextField()
+           textField.borderStyle = .roundedRect
+           textField.layer.borderWidth = 1
+           textField.layer.borderColor = UIColor.lightGray.cgColor
+           textField.placeholder = "Enter contact"
+           return textField
+       }()
+
+       private let saveButton: UIButton = {
+           let button = UIButton(type: .system)
+           button.setTitle("Save", for: .normal)
+           button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+           button.backgroundColor = .systemOrange
+           button.setTitleColor(.white, for: .normal)
+           button.layer.cornerRadius = 8
+           button.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
+           return button
+       }()
+
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        setupConstraints()
+        populateFields()
     }
+
+    private func setupUI() {
+           view.backgroundColor = .white
+
+           view.addSubview(profileImageView)
+           view.addSubview(selectImageButton)
+           view.addSubview(nameTextField)
+           view.addSubview(descriptionTextView)
+           view.addSubview(contactTextField)
+           view.addSubview(saveButton)
+
+           setupConstraints()
+       }
+
+       private func setupConstraints() {
+           profileImageView.translatesAutoresizingMaskIntoConstraints = false
+           selectImageButton.translatesAutoresizingMaskIntoConstraints = false
+           nameTextField.translatesAutoresizingMaskIntoConstraints = false
+           descriptionTextView.translatesAutoresizingMaskIntoConstraints = false
+           contactTextField.translatesAutoresizingMaskIntoConstraints = false
+           saveButton.translatesAutoresizingMaskIntoConstraints = false
+
+           NSLayoutConstraint.activate([
+               profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+               profileImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+               profileImageView.widthAnchor.constraint(equalToConstant: 100),
+               profileImageView.heightAnchor.constraint(equalToConstant: 100),
+
+               selectImageButton.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 10),
+               selectImageButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+               nameTextField.topAnchor.constraint(equalTo: selectImageButton.bottomAnchor, constant: 20),
+               nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+               nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+               descriptionTextView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
+               descriptionTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+               descriptionTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+               descriptionTextView.heightAnchor.constraint(equalToConstant: 100),
+
+               contactTextField.topAnchor.constraint(equalTo: descriptionTextView.bottomAnchor, constant: 20),
+               contactTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+               contactTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+               saveButton.topAnchor.constraint(equalTo: contactTextField.bottomAnchor, constant: 20),
+               saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+               saveButton.widthAnchor.constraint(equalToConstant: 100),
+               saveButton.heightAnchor.constraint(equalToConstant: 40)
+           ])
+       }
+
+
+
+    private func populateFields() {
+        nameTextField.text = name
+        descriptionTextView.text = descriptionText
+        contactTextField.text = contact
+        if let imageUrl = imageUrl, let url = URL(string: imageUrl) {
+            loadProfileImage(from: url)
+        } else {
+            profileImageView.image = UIImage(named: "default_profile")
+        }
+    }
+
+
+    private func loadProfileImage(from url: URL) {
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self?.profileImageView.image = image
+                }
+            }
+        }.resume()
+    }
+
+    @objc private func handleSelectImage() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.allowsEditing = true
+        present(imagePicker, animated: true)
+    }
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        picker.dismiss(animated: true)
+        if let editedImage = info[.editedImage] as? UIImage {
+            profileImageView.image = editedImage
+        }
+    }
+
+    @objc private func handleSave() {
+            guard
+                let updatedName = nameTextField.text,
+                let updatedDescription = descriptionTextView.text,
+                let updatedContact = contactTextField.text,
+                let profileImage = profileImageView.image,
+                let imageData = profileImage.jpegData(compressionQuality: 0.8),
+                let userId = Auth.auth().currentUser?.uid
+            else { return }
+
+            let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
+            storageRef.putData(imageData, metadata: nil) { _, error in
+                guard error == nil else { return }
+
+                storageRef.downloadURL { [weak self] url, error in
+                    guard let url = url else { return }
+
+                    let details = UserDetails(
+                        name: updatedName,
+                        description: updatedDescription,
+                        contact: updatedContact,
+                        imageUrl: url.absoluteString
+                    )
+
+                    self?.onSave?(details)
+                    self?.navigationController?.popViewController(animated: true)
+                }
+            }
+        }
+}
+
+struct UserDetails {
+    let name: String
+    let description: String
+    let contact: String
+    let imageUrl: String
 }

@@ -351,10 +351,11 @@ func populateFirestore() {
                 speakers: [
                     Speaker(name: "Samay Raina", imageURL: "samayrainaimg"),
                     Speaker(name: "Rohit Saraf", imageURL: "rohitsaraf")
-                ],
+                ], userId: "",
                 description: "The grand finale of Aaruush, featuring cultural and tech highlights.",
                 latitude: 13.0604,
-                longitude: 80.2496
+                longitude: 80.2496,
+                tags: []
             )
         ],
         "Fun and Entertainment": [
@@ -371,10 +372,11 @@ func populateFirestore() {
                 imageName: "SamayRaina",
                 speakers: [
                     Speaker(name: "Samay Raina", imageURL: "samayrainaimg")
-                ],
+                ], userId: "",
                 description: "A hilarious evening of stand-up comedy by Samay Raina.",
                 latitude: 13.0827,
-                longitude: 80.2707
+                longitude: 80.2707,
+                tags: []
             )
         ]
     ]
@@ -427,10 +429,11 @@ struct EventDataProvider {
                 location: "Main Arena",
                 locationDetails: "Central Lawn",
                 imageName: "AarushIn",
-                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg"),Speaker(name: "Rohit Saraf", imageURL: "rohitsaraf")],
+                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg"),Speaker(name: "Rohit Saraf", imageURL: "rohitsaraf")], userId: "",
                 description: "The grand finale of Aaruush, featuring cultural and tech highlights.",
                 latitude: 13.0604,
-                longitude: 80.2496
+                longitude: 80.2496,
+                tags: []
             ),
             EventModel(
                 eventId: "1", title: "Samay Raina Comedy Night",
@@ -442,10 +445,11 @@ struct EventDataProvider {
                 location: "Auditorium A",
                 locationDetails: "Downtown Center",
                 imageName: "SamayRaina",
-                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")],
+                speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")], userId: "",
                 description: "A hilarious evening of stand-up comedy by Samay Raina.",
                 latitude: 13.0827,
-                longitude: 80.2707
+                longitude: 80.2707,
+                tags: []
             ),
             EventModel(
                 eventId: "19", title: "Aaruush Grand Finale",
@@ -457,10 +461,11 @@ struct EventDataProvider {
                 location: "Main Arena",
                 locationDetails: "Central Lawn",
                 imageName: "AarushIn",
-                speakers: [],
+                speakers: [], userId: "",
                 description: "The grand finale of Aaruush, featuring cultural and tech highlights.",
                 latitude: 13.0604,
-                longitude: 80.2496
+                longitude: 80.2496,
+                tags: []
             )
         ]
         let funEvents = [
@@ -474,10 +479,11 @@ struct EventDataProvider {
                     location: "Auditorium A",
                     locationDetails: "Downtown Center",
                     imageName: "SamayRaina",
-                    speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")],
+                    speakers: [Speaker(name: "Samay Raina", imageURL: "samayrainaimg")], userId: "",
                     description: "A hilarious evening of stand-up comedy by Samay Raina.",
                     latitude: 13.0827,
-                    longitude: 80.2707
+                    longitude: 80.2707,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "2", title: "Aditi Mittal Comedy Show",
@@ -489,10 +495,11 @@ struct EventDataProvider {
                     location: "Auditorium B",
                     locationDetails: "City Square",
                     imageName: "AditiMittal",
-                    speakers: [Speaker(name: "Aditi Mittal", imageURL: "aditimittalimg")],
+                    speakers: [Speaker(name: "Aditi Mittal", imageURL: "aditimittalimg")], userId: "",
                     description: "Experience the wit and humor of Aditi Mittal.",
                     latitude: 13.0780,
-                    longitude: 80.2500
+                    longitude: 80.2500,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "3", title: "Sahil Shah Live",
@@ -504,10 +511,11 @@ struct EventDataProvider {
                     location: "Grand Theatre",
                     locationDetails: "East Avenue",
                     imageName: "Sahilshah",
-                    speakers: [Speaker(name: "Sahil Shah", imageURL: "sahilshahimg")],
+                    speakers: [Speaker(name: "Sahil Shah", imageURL: "sahilshahimg")], userId: "",
                     description: "Join Sahil Shah for a night full of entertainment.",
                     latitude: 13.0750,
-                    longitude: 80.2600
+                    longitude: 80.2600,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "4", title: "Square One Fest",
@@ -519,10 +527,11 @@ struct EventDataProvider {
                     location: "City Park",
                     locationDetails: "Greenwood",
                     imageName: "SqareOne",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Enjoy a full day of activities, music, and fun at Square One Fest.",
                     latitude: 13.0800,
-                    longitude: 80.2400
+                    longitude: 80.2400,
+                    tags: []
                 )
             ]
 
@@ -537,10 +546,11 @@ struct EventDataProvider {
                     location: "Tech Hall",
                     locationDetails: "Innovation Avenue",
                     imageName: "Roboriot",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Robotics championship featuring teams from across the region.",
                     latitude: 13.0450,
-                    longitude: 80.2200
+                    longitude: 80.2200,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "6", title: "Figma Summit",
@@ -552,10 +562,11 @@ struct EventDataProvider {
                     location: "Creative Hub",
                     locationDetails: "Design Plaza",
                     imageName: "FigmaSummit",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Explore the latest in UI/UX design with industry experts.",
                     latitude: 13.0480,
-                    longitude: 80.2120
+                    longitude: 80.2120,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "7", title: "Ideathon",
@@ -567,10 +578,11 @@ struct EventDataProvider {
                     location: "Campus Center",
                     locationDetails: "Innovation Lane",
                     imageName: "Ideathon",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "A full-day idea generation competition for students and professionals.",
                     latitude: 13.0530,
-                    longitude: 80.2150
+                    longitude: 80.2150,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "8", title: "DShack Coding Challenge",
@@ -582,10 +594,11 @@ struct EventDataProvider {
                     location: "Coding Arena",
                     locationDetails: "Code Street",
                     imageName: "DShack",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "A high-energy coding challenge for developers of all skill levels.",
                     latitude: 13.0650,
-                    longitude: 80.2300
+                    longitude: 80.2300,
+                    tags: []
                 )
             ]
         let clubAndSocietiesEvents = [
@@ -599,10 +612,11 @@ struct EventDataProvider {
                     location: "Library Hall",
                     locationDetails: "SRMIST Campus",
                     imageName: "DSA",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Meetup for Data Structures and Algorithms enthusiasts.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "10", title: "D-Bug Workshop",
@@ -614,10 +628,11 @@ struct EventDataProvider {
                     location: "Tech Lab 2",
                     locationDetails: "SRMIST Campus",
                     imageName: "Dbug",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Learn debugging techniques for efficient coding.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "11", title: "MLSA Knowledge Sharing",
@@ -629,10 +644,11 @@ struct EventDataProvider {
                     location: "Room 203",
                     locationDetails: "IT Block",
                     imageName: "MLSA",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Knowledge sharing session hosted by MLSA members.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
             
@@ -647,10 +663,11 @@ struct EventDataProvider {
                     location: "Main Stage",
                     locationDetails: "Central Lawn",
                     imageName: "BigDeal",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Dance competition featuring amazing talent.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "13", title: "Musication Evening",
@@ -662,10 +679,11 @@ struct EventDataProvider {
                     location: "Auditorium C",
                     locationDetails: "SRMIST Campus",
                     imageName: "Musication",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "An evening filled with soothing music performances.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
             
@@ -680,10 +698,11 @@ struct EventDataProvider {
                     location: "Lecture Hall 1",
                     locationDetails: "Networking Block",
                     imageName: "AarushLive1",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Interactive live session with industry professionals.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 ),
                 EventModel(
                     eventId: "15", title: "TEDx Youth",
@@ -695,10 +714,11 @@ struct EventDataProvider {
                     location: "Grand Theatre",
                     locationDetails: "East Avenue",
                     imageName: "TedX",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "A platform for sharing inspiring ideas and innovation.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
             let wellnessEvents = [
@@ -712,10 +732,11 @@ struct EventDataProvider {
                     location: "Marina Beach",
                     locationDetails: "Chennai",
                     imageName: "BeachClean",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Volunteer drive to clean up Marina Beach.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
             let sportsEvents = [
@@ -729,10 +750,11 @@ struct EventDataProvider {
                     location: "Sports Complex",
                     locationDetails: "SRMIST Campus",
                     imageName: "TwistedTrivia",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Fun trivia challenge focusing on sports topics.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
             let careerConnectEvents = [
@@ -746,10 +768,11 @@ struct EventDataProvider {
                     location: "Lecture Hall 2",
                     locationDetails: "Placement Block",
                     imageName: "ppt1",
-                    speakers: [],
+                    speakers: [], userId: "",
                     description: "Session on shaping careers and leveraging opportunities.",
                     latitude: 13.0604,
-                    longitude: 80.2496
+                    longitude: 80.2496,
+                    tags: []
                 )
             ]
 

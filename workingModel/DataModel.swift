@@ -13,8 +13,12 @@ import FirebaseFirestore
 
 
 struct Speaker: Codable {
-    let name: String
-    let imageURL: String
+    var name: String
+    var imageURL: String
+}
+
+struct Tags: Codable {
+    let tag: String
 }
 
 struct EventModel: Codable {
@@ -29,9 +33,11 @@ struct EventModel: Codable {
     let locationDetails: String
     var imageName: String
     let speakers: [Speaker]
+    let userId: String?
     let description: String?
     var latitude: Double? // New property
-        var longitude: Double? // New property
+    var longitude: Double? // New property
+    let tags: [String]
 }
 extension EventModel {
     init(from decoder: Decoder) throws {
@@ -45,12 +51,14 @@ extension EventModel {
         date = try container.decode(String.self, forKey: .date)
         time = try container.decode(String.self, forKey: .time)
         location = try container.decode(String.self, forKey: .location)
-        locationDetails = try container.decodeIfPresent(String.self, forKey: .locationDetails)!
-        imageName = try container.decodeIfPresent(String.self, forKey: .imageName)!
+        locationDetails = try container.decodeIfPresent(String.self, forKey: .locationDetails) ?? ""
+        imageName = try container.decodeIfPresent(String.self, forKey: .imageName) ?? "placeholder"
         speakers = try container.decodeIfPresent([Speaker].self, forKey: .speakers) ?? []
+        tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         description = try container.decodeIfPresent(String.self, forKey: .description)
         latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
         longitude = try container.decodeIfPresent(Double.self, forKey: .longitude)
+        userId = try container.decodeIfPresent(String.self, forKey: .userId)
     }
 }
 

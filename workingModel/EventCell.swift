@@ -59,6 +59,15 @@ class EventCell: UICollectionViewCell {
             dateLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             dateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
         ])
+        
+        contentView.layer.cornerRadius = 10
+        contentView.layer.shadowColor = UIColor.black.cgColor
+        contentView.layer.shadowOpacity = 0.1
+        contentView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        contentView.layer.shadowRadius = 4
+        contentView.layer.masksToBounds = false
+        contentView.backgroundColor = .white
+
     }
     
     required init?(coder: NSCoder) {
@@ -66,8 +75,8 @@ class EventCell: UICollectionViewCell {
     }
     
     func configure(with event: EventModel) {
+        // Set the image
         if let imageURL = URL(string: event.imageName), !event.imageName.isEmpty, event.imageName.hasPrefix("http") {
-            // Handle image from URL
             DispatchQueue.global().async { [weak self] in
                 if let data = try? Data(contentsOf: imageURL), let image = UIImage(data: data) {
                     DispatchQueue.main.async {
@@ -80,10 +89,8 @@ class EventCell: UICollectionViewCell {
                 }
             }
         } else if !event.imageName.isEmpty {
-            // Handle local image by name
             eventImageView.image = UIImage(named: event.imageName) ?? UIImage(named: "placeholder")
         } else {
-            // Use placeholder if imageName is empty
             eventImageView.image = UIImage(named: "placeholder")
         }
         
@@ -92,5 +99,3 @@ class EventCell: UICollectionViewCell {
         dateLabel.text = event.date
     }
 }
-
-
