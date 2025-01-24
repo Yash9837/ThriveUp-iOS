@@ -32,6 +32,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         window?.makeKeyAndVisible()
+        
+        // Set the global appearance for back button text color to orange
+        let backButtonAppearance = UIBarButtonItem.appearance()
+        backButtonAppearance.setTitleTextAttributes([.foregroundColor: UIColor.orange], for: .normal)
+
 
         return true
     }

@@ -1,19 +1,26 @@
-//
-//  ChatDetailViewController.swift
-//  ThriveUp
-//
-//  Created by palak seth on 15/11/24.
-//
-
 import UIKit
+import FirebaseAuth
+import FirebaseFirestore
+
+
+protocol ChatDetailViewControllerDelegate: AnyObject {
+    func chatDetailViewControllerDidOpenChat(chatThread: ChatThread)
+}
+
 
 class ChatDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var chatThread: ChatThread? // Thread containing messages and participants
+    private var db = Firestore.firestore()
+    private var messagesListener: ListenerRegistration?
+    private let currentUserID = Auth.auth().currentUser?.uid ?? ""
+    weak var delegate: ChatDetailViewControllerDelegate?
     
     private let tableView = UITableView()
     private let messageInputBar = UIView()
     private let inputTextField = UITextField()
     private let sendButton = UIButton(type: .system)
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,64 +29,53 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
         setupCustomTitleView()
         setupMessageInputComponents()
         setupTableView()
+        fetchMessages() // Start listening for new messages
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let chatThread = chatThread {
+            delegate?.chatDetailViewControllerDidOpenChat(chatThread: chatThread)
+        }
+    }
+    
+    deinit {
+        // Remove Firestore listener when the view controller is deallocated
+        messagesListener?.remove()
     }
     
     private func setupCustomTitleView() {
         // Ensure participant exists
-        guard let participant = chatThread?.participants.first(where: { $0.id != "currentUser" }) else {
+        guard let participant = chatThread?.participants.first(where: { $0.id != currentUserID }) else {
             print("No participant found other than the current user.")
             return
         }
         
-        // Create container view for title
-        let titleView = UIView()
+        // Custom title view with profile image and name
+        let titleView = UIStackView()
+        titleView.axis = .horizontal
+        titleView.alignment = .center
+        titleView.spacing = 8
         
-        // Profile Image View
-        let profileImageView = UIImageView(image: participant.profileImage)
-        profileImageView.layer.cornerRadius = 20
-        profileImageView.clipsToBounds = true
+        let profileImageView = UIImageView()
         profileImageView.contentMode = .scaleAspectFill
+        profileImageView.clipsToBounds = true
+        profileImageView.layer.cornerRadius = 20
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        profileImageView.image = participant.profileImage ?? UIImage(named: "placeholder")
+        NSLayoutConstraint.activate([
+            profileImageView.widthAnchor.constraint(equalToConstant: 40),
+            profileImageView.heightAnchor.constraint(equalToConstant: 40)
+        ])
         
-        // Name Label
         let nameLabel = UILabel()
         nameLabel.text = participant.name
         nameLabel.font = UIFont.boldSystemFont(ofSize: 16)
         nameLabel.textColor = .black
-        nameLabel.textAlignment = .center
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Debugging: Add temporary background colors
-        titleView.backgroundColor = .clear
-        profileImageView.backgroundColor = .lightGray
-        nameLabel.backgroundColor = .yellow
-        
-        // Add subviews
-        titleView.addSubview(profileImageView)
-        titleView.addSubview(nameLabel)
-        
-        // Apply constraints
-        NSLayoutConstraint.activate([
-            profileImageView.centerXAnchor.constraint(equalTo: titleView.centerXAnchor),
-            profileImageView.topAnchor.constraint(equalTo: titleView.topAnchor),
-            profileImageView.widthAnchor.constraint(equalToConstant: 40),
-            profileImageView.heightAnchor.constraint(equalToConstant: 40),
-            
-            nameLabel.centerXAnchor.constraint(equalTo: titleView.centerXAnchor),
-            nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 4),
-            nameLabel.bottomAnchor.constraint(equalTo: titleView.bottomAnchor)
-        ])
-        
-        // Set intrinsic content size for titleView
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(greaterThanOrEqualToConstant: 100),
-            titleView.heightAnchor.constraint(equalToConstant: 100) // Adjust as needed
-        ])
-        
-        // Assign custom title view
+        titleView.addArrangedSubview(profileImageView)
+        titleView.addArrangedSubview(nameLabel)
         navigationItem.titleView = titleView
-        navigationController?.navigationBar.layoutIfNeeded()
     }
     
     private func setupMessageInputComponents() {
@@ -112,6 +108,15 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
             sendButton.trailingAnchor.constraint(equalTo: messageInputBar.trailingAnchor, constant: -16),
             sendButton.centerYAnchor.constraint(equalTo: messageInputBar.centerYAnchor)
         ])
+        
+        // Add an accessory toolbar with a Save button
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let saveButton = UIBarButtonItem(title: "Send", style: .plain, target: self, action: #selector(handleSend))
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        toolbar.items = [flexibleSpace, saveButton]
+        
+        inputTextField.inputAccessoryView = toolbar
     }
     
     private func setupTableView() {
@@ -135,32 +140,72 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     @objc private func handleSend() {
-        guard let text = inputTextField.text, !text.isEmpty else { return }
+        guard let text = inputTextField.text, !text.isEmpty, let chatThread = chatThread else { return }
 
-        // Add new message to the thread
-        if var chatThread = chatThread {
-            let newMessage = ChatMessage(id: UUID().uuidString, sender: User(id: "currentUser", name: "Current User"), messageContent: text, timestamp: Date(), isSender: true)
-            chatThread.messages.append(newMessage)
-            
-            self.chatThread = chatThread // Re-assign the modified chatThread back to the property
-
-            inputTextField.text = nil
-
-            // Reload data and ensure the table view updates before scrolling
-            tableView.reloadData()
-
-            DispatchQueue.main.async {
-                let rowCount = self.chatThread?.messages.count ?? 0
-                if rowCount > 0 {
-                    let indexPath = IndexPath(row: rowCount - 1, section: 0)
-                    if self.tableView.numberOfRows(inSection: 0) > indexPath.row {
-                        self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
-                    }
+        let messageID = UUID().uuidString
+        let messageData: [String: Any] = [
+            "id": messageID,
+            "senderId": currentUserID,
+            "messageContent": text,
+            "timestamp": FieldValue.serverTimestamp()
+        ]
+        
+        db.collection("chats").document(chatThread.id).collection("messages").document(messageID).setData(messageData) { error in
+            if let error = error {
+                print("Error sending message: \(error)")
+            } else {
+                DispatchQueue.main.async {
+                    self.inputTextField.text = nil
                 }
             }
         }
     }
-
+    
+    private func fetchMessages() {
+        guard let chatThread = chatThread else { return }
+        
+        messagesListener = db.collection("chats")
+            .document(chatThread.id)
+            .collection("messages")
+            .order(by: "timestamp", descending: false)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Error fetching messages: \(error)")
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                let newMessages = documents.compactMap { doc -> ChatMessage? in
+                    let data = doc.data()
+                    let id = doc.documentID
+                    let senderID = data["senderId"] as? String ?? ""
+                    let messageContent = data["messageContent"] as? String ?? ""
+                    let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+                    
+                    // Find sender details
+                    let sender = chatThread.participants.first { $0.id == senderID } ?? User(id: senderID, name: "Unknown")
+                    
+                    return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == self.currentUserID)
+                }
+                
+                self.chatThread?.messages = newMessages
+                self.tableView.reloadData()
+                self.scrollToBottom()
+            }
+    }
+    
+    private func scrollToBottom() {
+        DispatchQueue.main.async {
+            let rowCount = self.chatThread?.messages.count ?? 0
+            if rowCount > 0 {
+                let indexPath = IndexPath(row: rowCount - 1, section: 0)
+                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+            }
+        }
+    }
     
     // MARK: - UITableViewDataSource
     
@@ -182,5 +227,3 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
         return UITableView.automaticDimension
     }
 }
-
-

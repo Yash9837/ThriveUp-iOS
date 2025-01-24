@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class BookmarkViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UISearchBarDelegate {
 
@@ -85,22 +86,60 @@ class BookmarkViewController: UIViewController, UICollectionViewDelegate, UIColl
     }
 
     private func loadBookmarkedEvents() {
-        Firestore.firestore().collection("swipedeventsdb").getDocuments { [weak self] (querySnapshot, error) in
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User is not authenticated")
+            return
+        }
+
+        let db = Firestore.firestore()
+        
+        db.collection("swipedeventsdb").whereField("userId", isEqualTo: userId).getDocuments { [weak self] (querySnapshot, error) in
             if let error = error {
                 print("Error getting documents: \(error)")
                 return
             }
+            
             guard let documents = querySnapshot?.documents else { return }
-            var events: [EventModel] = []
+            var eventIds: [String] = []
             for document in documents {
-                do {
-                    let event = try document.data(as: EventModel.self)
-                    events.append(event)
-                } catch {
-                    print("Error decoding event: \(error)")
+                let data = document.data()
+                if let eventId = data["eventId"] as? String {
+                    eventIds.append(eventId)
                 }
             }
-            self?.bookmarkedEvents = events
+            
+            self?.fetchEvents(eventIds: eventIds)
+        }
+    }
+    
+    private func fetchEvents(eventIds: [String]) {
+        let db = Firestore.firestore()
+        let eventsCollection = db.collection("events")
+        
+        let dispatchGroup = DispatchGroup()
+        var fetchedEvents: [EventModel] = []
+        
+        for eventId in eventIds {
+            dispatchGroup.enter()
+            eventsCollection.document(eventId).getDocument { (document, error) in
+                if let document = document, document.exists {
+                    do {
+                        let data = document.data()!
+                        let jsonData = try JSONSerialization.data(withJSONObject: data)
+                        let event = try JSONDecoder().decode(EventModel.self, from: jsonData)
+                        fetchedEvents.append(event)
+                    } catch {
+                        print("Error decoding event: \(error)")
+                    }
+                } else {
+                    print("Event not found: \(eventId)")
+                }
+                dispatchGroup.leave()
+            }
+        }
+        
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            self?.bookmarkedEvents = fetchedEvents
         }
     }
 
@@ -151,7 +190,7 @@ class BookmarkViewController: UIViewController, UICollectionViewDelegate, UIColl
         let category = Array(categorizedEvents.keys)[indexPath.section]
         if let event = categorizedEvents[category]?[indexPath.item] {
             let eventDetailsVC = EventDetailViewController()
-            eventDetailsVC.event = event
+            eventDetailsVC.eventId = event.eventId // Pass the event ID to fetch the specific event details
             navigationController?.pushViewController(eventDetailsVC, animated: true)
         }
     }
@@ -364,4 +403,3 @@ class BookmarkCell: UICollectionViewCell {
         NotificationCenter.default.post(name: NSNotification.Name("UnbookmarkEvent"), object: nil, userInfo: ["event": event])
     }
 }
-

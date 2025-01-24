@@ -152,17 +152,48 @@ class LoginViewController: UIViewController {
             }
             
             if let user = result?.user {
+                // Add user to Firestore Users collection
+                self?.addUserToFirestore(uid: user.uid, email: email)
+                
                 if self?.isUserSelected == true {
                     self?.checkUserInterests(uid: user.uid) { hasInterests in
                         if hasInterests {
                             self?.navigateToUserTabBar()
                         } else {
-//                            self?.navigateToInterestViewController(user: user)
-                            self?.navigateToUserTabBar()
+                            self?.navigateToUserTabBar() // Placeholder for navigating to interests
                         }
                     }
                 } else {
                     self?.navigateToOrganizerTabBar()
+                }
+            }
+        }
+    }
+    
+    // MARK: - Firestore Methods
+    private func addUserToFirestore(uid: String, email: String) {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(uid)
+        
+        userRef.getDocument { [weak self] document, error in
+            if let document = document, document.exists {
+                // User document already exists, no need to create it
+                return
+            } else {
+                // Create user document with email, uid, and userType
+                let userType = self?.isUserSelected == true ? "user" : "host"
+                userRef.setData([
+                    "email": email,
+                    "uid": uid,
+                    "userType": userType,
+                    "Description": "Enter Description",
+                    "profileImageURL": "",
+                    "ContactDetails": "Enter Contact",
+                    "name": "Enter Name"
+                ]) { error in
+                    if let error = error {
+                        self?.showAlert(title: "Error", message: "Failed to create user document: \(error.localizedDescription)")
+                    }
                 }
             }
         }

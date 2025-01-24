@@ -1,10 +1,5 @@
-//
-//  MainTabBarController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 16/11/24.
-//
 import UIKit
+import FirebaseAuth
 
 class UserTabBarController: UITabBarController {
     override func viewDidLoad() {
@@ -47,5 +42,51 @@ class UserTabBarController: UITabBarController {
         profileVC.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), tag: 3)
         
         viewControllers = [eventsVC, chatVC, swipeVC, profileVC]
+    }
+    
+    override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        if item.tag == 2 {
+            handleSwipeTabSelection()
+        }
+    }
+    
+    private func handleSwipeTabSelection() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            // Handle the case where the user is not authenticated
+            promptUserToSignIn()
+            return
+        }
+        
+        let hasLoggedInBeforeKey = "hasLoggedInBefore_\(userId)"
+        let isFirstTimeUser = !UserDefaults.standard.bool(forKey: hasLoggedInBeforeKey)
+        
+        if isFirstTimeUser {
+            let interestsVC = InterestsViewController()
+            interestsVC.isFirstTimeUser = true
+            interestsVC.userID = userId
+            navigationController?.pushViewController(interestsVC, animated: true)
+        } else {
+            if let swipeVC = viewControllers?[2] as? UINavigationController {
+                swipeVC.popToRootViewController(animated: false)
+            }
+        }
+    }
+    
+    private func promptUserToSignIn() {
+        let alert = UIAlertController(title: "Sign In Required", message: "Please sign in to access this feature.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Sign In", style: .default, handler: { _ in
+            // Navigate to the sign-in view controller
+            self.showSignInViewController()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func showSignInViewController() {
+        // Code to show the sign-in view controller
+        let signInVC = LoginViewController()
+        let navController = UINavigationController(rootViewController: signInVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true, completion: nil)
     }
 }

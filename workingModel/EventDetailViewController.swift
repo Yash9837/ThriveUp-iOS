@@ -446,7 +446,6 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
         // Define form fields with placeholders and empty values
         let formFields = [
             FormField(placeholder: "Name", value: ""),
-            FormField(placeholder: "Last Name", value: ""),
             FormField(placeholder: "Phone Number", value: ""),
             FormField(placeholder: "Year of Study", value: ""),
             FormField(placeholder: "Course", value: ""),

@@ -2,19 +2,24 @@ import UIKit
 import Firebase
 import FirebaseFirestore
 
-
 class InterestsViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
 
     // User ID property
     var userID: String?
+    var isFirstTimeUser: Bool = false
 
     // Data structure for interests
     private let interests: [String: [String]] = [
-        "Creativity": ["Art 🎨", "Design ✏️", "Make-up 💄", "Photography 📸", "Writing 📝", "Singing 🎤", "Dancing 💃", "Crafts 📎", "Making videos 📼"],
-        "Sports": ["Yoga 🧘", "Running 👟", "Gym 🏋️", "Soccer ⚽", "Cricket 🏏", "Tennis 🎾", "Badminton 🏸", "Basketball 🏀"],
-        "Date Preference": ["Weekday 📅", "Weekend 🌞"],
-        "Categories": ["Tech 💻", "Fun 🎉", "Entertainment 🎭", "Wellness 🧘‍♀️", "Networking 🤝", "Cultural 🎨", "Student Clubs 👩‍🎓"],
-        "Participants": ["Solo 🧍", "Duo 👫", "Team 👥"]
+        "Academic": ["Workshops", "Seminars", "Conferences"],
+        "Cultural": ["Festival", "Dance", "Music", "Art Exhibition", "Pro Shows"],
+        "Sports": ["Tournaments", "Hostel Day Events", "Yoga Day Events", "Outdoor Activities"],
+        "Networking": ["Career Fairs", "Alumni Meetups", "Guest Lectures", "Professional Development Event"],
+        "Club & Society": ["Club Meetings", "Club Recruitements", "Social Events"],
+        "Health & Wellness": ["Health Camps", "Mental Health Workshops", "Yoga Classes", "Wellness Seminars"],
+        "Community Service": ["Volunteering Opportunities", "Blood Donation", "Community Clean-up Events", "Charity Fundraisers"],
+        "Tech & Innovation": ["Hackathons", "Tech Talks", "Startup Pitches", "Coding Competition"],
+        "Entertainment": ["Movie Screenings", "Game Nioghts", "Talent Shows", "Open Mic Events"],
+        "Miscellaneous": ["Orientation Sessions","Special Interest Events"],
     ]
 
     private var selectedInterests = [String]()
@@ -71,15 +76,18 @@ class InterestsViewController: UIViewController, UICollectionViewDelegate, UICol
         setupCollectionView()
         setupConstraints()
         
-        // Fetch saved interests for the user
-        fetchSavedInterests()
+        // Fetch saved interests for the user if not first time
+        if !isFirstTimeUser {
+            fetchSavedInterests()
+        }
     }
     
     private func setupNavigationBar() {
-        // Change back button to orange
-        let backButton = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backButtonTapped))
-        backButton.tintColor = .systemOrange
-        navigationItem.leftBarButtonItem = backButton
+        if !isFirstTimeUser {
+            let backButton = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backButtonTapped))
+            backButton.tintColor = .systemOrange
+            navigationItem.leftBarButtonItem = backButton
+        }
     }
 
     private func setupHeader() {
@@ -150,7 +158,7 @@ class InterestsViewController: UIViewController, UICollectionViewDelegate, UICol
     }
 
     @objc private func backButtonTapped() {
-        navigateToSwipeViewController()
+        navigationController?.popViewController(animated: true)
     }
 
     private func saveInterestsToFirestore() {
@@ -172,27 +180,16 @@ class InterestsViewController: UIViewController, UICollectionViewDelegate, UICol
             // Show an alert controller confirming the interests have been saved
             let alertController = UIAlertController(title: "Success", message: "Your interests have been saved.", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                self.navigateToSwipeViewController()
+                if self.isFirstTimeUser {
+                    // Set the flag in UserDefaults for the first time login
+                    let hasLoggedInBeforeKey = "hasLoggedInBefore_\(userID)"
+                    UserDefaults.standard.set(true, forKey: hasLoggedInBeforeKey)
+                    self.askForTutorial()
+                } else {
+                    self.navigationController?.popViewController(animated: true)
+                }
             }))
             self.present(alertController, animated: true, completion: nil)
-        }
-    }
-
-    private func navigateToSwipeViewController() {
-        // Assuming the SwipeViewController is the initial view controller
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(true, forKey: "hasLoggedInBefore")
-        
-        // Notify SwipeViewController to show the instructions
-        NotificationCenter.default.post(name: NSNotification.Name("ShowInstructions"), object: nil)
-        
-        navigationController?.popViewController(animated: true)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        if self.isMovingFromParent {
-            navigateToSwipeViewController()
         }
     }
 
@@ -265,6 +262,25 @@ class InterestsViewController: UIViewController, UICollectionViewDelegate, UICol
         header.configure(with: category)
         return header
     }
+    
+    private func askForTutorial() {
+        let alert = UIAlertController(title: "Welcome!", message: "Would you like to take a quick tour of the app?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { _ in
+            UserDefaults.standard.set(true, forKey: "hasSeenGuidedTour_\(self.userID!)")
+            self.startGuidedTour()
+        }))
+        alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: { _ in
+            UserDefaults.standard.set(true, forKey: "hasSeenGuidedTour_\(self.userID!)")
+            self.navigationController?.popViewController(animated: true)
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
+    private func startGuidedTour() {
+        let swipeVC = SwipeViewController()
+        swipeVC.startGuidedTour()
+        navigationController?.pushViewController(swipeVC, animated: true)
+    }
 }
 
 // Custom UICollectionViewCell for Interest
@@ -306,6 +322,7 @@ class InterestCell: UICollectionViewCell {
 }
 
 // Custom Header View for Section
+// Custom Header View for Section
 class SectionHeader: UICollectionReusableView {
     private let label = UILabel()
 
@@ -330,5 +347,3 @@ class SectionHeader: UICollectionReusableView {
         label.text = text
     }
 }
-
-

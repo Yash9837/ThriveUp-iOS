@@ -34,11 +34,14 @@ class OrganizerTabBar: UITabBarController {
         }
         
         private func setupTabs() {
-            let eventsVC = UINavigationController(rootViewController: EventListViewController())
+            let eventsVC = UINavigationController(rootViewController: OrganizerEventListViewController())
             eventsVC.tabBarItem = UITabBarItem(title: "Feed", image: UIImage(systemName: "house"), tag: 0)
             
+            let chatVC = UINavigationController(rootViewController: OrganiserChatViewController())
+            chatVC.tabBarItem = UITabBarItem(title: "Chat", image: UIImage(systemName: "bubble.right"), tag: 1)
+            
             let PostVC = UINavigationController(rootViewController: EventPostViewController())
-            PostVC.tabBarItem = UITabBarItem(title: "Post", image: UIImage(systemName: "plus.app"), tag: 1)
+            PostVC.tabBarItem = UITabBarItem(title: "Post", image: UIImage(systemName: "plus.app"), tag: 2)
             
            
             
@@ -48,7 +51,7 @@ class OrganizerTabBar: UITabBarController {
             
             
             
-            viewControllers = [eventsVC, PostVC,profileVC]
+            viewControllers = [eventsVC,chatVC, PostVC,profileVC]
         }
     }
 

@@ -64,15 +64,21 @@
 		57D977A92CEB881B004B1314 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977A82CEB881B004B1314 /* SplashViewController.swift */; };
 		57D977AB2CEC89C7004B1314 /* UnauthenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977AA2CEC89C7004B1314 /* UnauthenViewController.swift */; };
 		57D977AD2CEC9240004B1314 /* EventData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977AC2CEC9240004B1314 /* EventData.swift */; };
-		57D977AF2CEC94B2004B1314 /* OrganizerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977AE2CEC94B2004B1314 /* OrganizerViewController.swift */; };
 		57D977B12CEC9524004B1314 /* OrganizerTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977B02CEC9524004B1314 /* OrganizerTabBar.swift */; };
 		57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */; };
 		57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */; };
 		57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */; };
 		7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7841AAA12D36902E00438FE0 /* InterestsViewController.swift */; };
+		7852F5FE2D43C81A0068F229 /* TicketViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F5FD2D43C81A0068F229 /* TicketViewController.swift */; };
+		7852F6022D43F72C0068F229 /* OrganiserEventDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */; };
+		7852F6042D43F7C90068F229 /* OrganiserChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */; };
 		78B8D2D92D38E7510004AD09 /* Instructions in Frameworks */ = {isa = PBXBuildFile; productRef = 78B8D2D82D38E7510004AD09 /* Instructions */; };
 		78BE28962D385318002BF1EB /* TagViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */; };
 		78ED42F62D400E9800FF3017 /* EventsCardsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */; };
+		78ED42FA2D42B24B00FF3017 /* OrganizerEventListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ED42F92D42B24B00FF3017 /* OrganizerEventListViewController.swift */; };
+		78ED43002D42C14800FF3017 /* FirestoreChatManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ED42FF2D42C14800FF3017 /* FirestoreChatManager.swift */; };
+		78ED43032D42C1B900FF3017 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 78ED43022D42C1B900FF3017 /* SDWebImage */; };
+		78ED43052D42C1B900FF3017 /* SDWebImageMapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 78ED43042D42C1B900FF3017 /* SDWebImageMapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -141,14 +147,18 @@
 		57D977A82CEB881B004B1314 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		57D977AA2CEC89C7004B1314 /* UnauthenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthenViewController.swift; sourceTree = "<group>"; };
 		57D977AC2CEC9240004B1314 /* EventData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventData.swift; sourceTree = "<group>"; };
-		57D977AE2CEC94B2004B1314 /* OrganizerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerViewController.swift; sourceTree = "<group>"; };
 		57D977B02CEC9524004B1314 /* OrganizerTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerTabBar.swift; sourceTree = "<group>"; };
 		57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEventViewController.swift; sourceTree = "<group>"; };
 		57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPostedViewController.swift; sourceTree = "<group>"; };
 		57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerProfileViewController.swift; sourceTree = "<group>"; };
 		7841AAA12D36902E00438FE0 /* InterestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestsViewController.swift; sourceTree = "<group>"; };
+		7852F5FD2D43C81A0068F229 /* TicketViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketViewController.swift; sourceTree = "<group>"; };
+		7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganiserEventDetailViewController.swift; sourceTree = "<group>"; };
+		7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganiserChatViewController.swift; sourceTree = "<group>"; };
 		78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagViewControllerDelegate.swift; sourceTree = "<group>"; };
 		78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsCardsViewController.swift; sourceTree = "<group>"; };
+		78ED42F92D42B24B00FF3017 /* OrganizerEventListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerEventListViewController.swift; sourceTree = "<group>"; };
+		78ED42FF2D42C14800FF3017 /* FirestoreChatManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreChatManager.swift; sourceTree = "<group>"; };
 		9A23441F065AEE873F26A07E /* Pods_ThriveUp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriveUp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E800843DDED1A2BA6196E1E /* Pods-ThriveUp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveUp.release.xcconfig"; path = "Target Support Files/Pods-ThriveUp/Pods-ThriveUp.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -162,8 +172,10 @@
 				572D8A382D0D5E4300DAB286 /* FirebaseAnalytics in Frameworks */,
 				572D8A3C2D0D5E4300DAB286 /* FirebaseAuth in Frameworks */,
 				572D8A3E2D0D5E4300DAB286 /* FirebaseCore in Frameworks */,
+				78ED43032D42C1B900FF3017 /* SDWebImage in Frameworks */,
 				572D8A3A2D0D5E4300DAB286 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
 				572D8A472D0D78F900DAB286 /* FirebaseStorage in Frameworks */,
+				78ED43052D42C1B900FF3017 /* SDWebImageMapKit in Frameworks */,
 				572D8A422D0D5E4300DAB286 /* FirebaseFirestore in Frameworks */,
 				78B8D2D92D38E7510004AD09 /* Instructions in Frameworks */,
 				572D8A442D0D5E4300DAB286 /* FirebaseFirestoreCombine-Community in Frameworks */,
@@ -194,6 +206,9 @@
 		577DA1BC2CE3999000760BFA /* ThriveUp */ = {
 			isa = PBXGroup;
 			children = (
+				7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */,
+				7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */,
+				7852F5FD2D43C81A0068F229 /* TicketViewController.swift */,
 				78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */,
 				577DA1BD2CE3999000760BFA /* AppDelegate.swift */,
 				7841AAA12D36902E00438FE0 /* InterestsViewController.swift */,
@@ -204,6 +219,8 @@
 				577DA1C12CE3999000760BFA /* EventViewController.swift */,
 				572D8A342D0D5D3800DAB286 /* GoogleService-Info.plist */,
 				577DA1C62CE3999100760BFA /* Assets.xcassets */,
+				78ED42FF2D42C14800FF3017 /* FirestoreChatManager.swift */,
+				78ED42F92D42B24B00FF3017 /* OrganizerEventListViewController.swift */,
 				577DA1C82CE3999100760BFA /* LaunchScreen.storyboard */,
 				577DA1CB2CE3999100760BFA /* Info.plist */,
 				577DA1D12CE3BDBB00760BFA /* DataModel.swift */,
@@ -242,7 +259,6 @@
 				57D977A62CEB8121004B1314 /* OnboardingPageViewController.swift */,
 				57D977A82CEB881B004B1314 /* SplashViewController.swift */,
 				57D977AA2CEC89C7004B1314 /* UnauthenViewController.swift */,
-				57D977AE2CEC94B2004B1314 /* OrganizerViewController.swift */,
 				57D977B02CEC9524004B1314 /* OrganizerTabBar.swift */,
 				57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */,
 				57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */,
@@ -302,6 +318,8 @@
 				572D8A432D0D5E4300DAB286 /* FirebaseFirestoreCombine-Community */,
 				572D8A462D0D78F900DAB286 /* FirebaseStorage */,
 				78B8D2D82D38E7510004AD09 /* Instructions */,
+				78ED43022D42C1B900FF3017 /* SDWebImage */,
+				78ED43042D42C1B900FF3017 /* SDWebImageMapKit */,
 			);
 			productName = workingModel;
 			productReference = 577DA1BA2CE3999000760BFA /* ThriveUp.app */;
@@ -334,6 +352,7 @@
 			packageReferences = (
 				572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */,
+				78ED43012D42C1B900FF3017 /* XCRemoteSwiftPackageReference "SDWebImage" */,
 			);
 			productRefGroup = 577DA1BB2CE3999000760BFA /* Products */;
 			projectDirPath = "";
@@ -388,6 +407,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				577DA1D82CE3C6F600760BFA /* CategoryHeader.swift in Sources */,
+				78ED42FA2D42B24B00FF3017 /* OrganizerEventListViewController.swift in Sources */,
 				577DA2E82CE8914400760BFA /* QuickAddCollectionViewCell.swift in Sources */,
 				577DA2F02CE898F000760BFA /* UserTabBarController.swift in Sources */,
 				577DA1C22CE3999000760BFA /* EventViewController.swift in Sources */,
@@ -398,10 +418,10 @@
 				57CDC6782D30451000836984 /* RegistrationsListViewController.swift in Sources */,
 				57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */,
 				57D977A92CEB881B004B1314 /* SplashViewController.swift in Sources */,
-				57D977AF2CEC94B2004B1314 /* OrganizerViewController.swift in Sources */,
 				577DA1D22CE3BDBB00760BFA /* DataModel.swift in Sources */,
 				57D977A32CEB7647004B1314 /* OnboardingViewController.swift in Sources */,
 				577DA2E42CE890BF00760BFA /* ChatCell.swift in Sources */,
+				7852F6042D43F7C90068F229 /* OrganiserChatViewController.swift in Sources */,
 				78ED42F62D400E9800FF3017 /* EventsCardsViewController.swift in Sources */,
 				577DA2F22CE8A4A000760BFA /* UserEventViewController.swift in Sources */,
 				577DA2002CE5DF6900760BFA /* FormFieldTableViewCell.swift in Sources */,
@@ -419,10 +439,13 @@
 				57D977992CE9C9BF004B1314 /* RegistrationDataViewController.swift in Sources */,
 				57D977A72CEB8121004B1314 /* OnboardingPageViewController.swift in Sources */,
 				577DA2D82CE88F2100760BFA /* ChatViewController.swift in Sources */,
+				7852F5FE2D43C81A0068F229 /* TicketViewController.swift in Sources */,
 				577DA2F42CE8A82900760BFA /* GeneralTabbarController.swift in Sources */,
 				577DA1DA2CE3DA1800760BFA /* CategoryButtonCell.swift in Sources */,
 				57D977932CE8BD54004B1314 /* ProfileViewController.swift in Sources */,
 				57D9779F2CEB1397004B1314 /* PhotoCell.swift in Sources */,
+				7852F6022D43F72C0068F229 /* OrganiserEventDetailViewController.swift in Sources */,
+				78ED43002D42C14800FF3017 /* FirestoreChatManager.swift in Sources */,
 				577DA2DE2CE88FE700760BFA /* LoginViewController.swift in Sources */,
 				577DA2EE2CE8922B00760BFA /* NotificationCell.swift in Sources */,
 				39DF783A2CE9AF5E004B8244 /* SwipeViewController.swift in Sources */,
@@ -588,6 +611,7 @@
 				DEVELOPMENT_TEAM = 5P9MT7PS5M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = workingModel/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app requires access to the camera to scan QR codes.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to provide accurate event location services.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to center the map and select event locations.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -619,6 +643,7 @@
 				DEVELOPMENT_TEAM = 5P9MT7PS5M;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = workingModel/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app requires access to the camera to scan QR codes.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to provide accurate event location services.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to center the map and select event locations.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -679,6 +704,14 @@
 				minimumVersion = 2.3.0;
 			};
 		};
+		78ED43012D42C1B900FF3017 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.20.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -726,6 +759,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */;
 			productName = Instructions;
+		};
+		78ED43022D42C1B900FF3017 /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 78ED43012D42C1B900FF3017 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+		78ED43042D42C1B900FF3017 /* SDWebImageMapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 78ED43012D42C1B900FF3017 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImageMapKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

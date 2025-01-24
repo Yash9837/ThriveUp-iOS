@@ -1,56 +1,22 @@
-// 
-//
-//  ChatViewController.swift
-//  ThriveUp
-//
-//  Created by palak seth on 13/11/24.
-//
+// Yash's Mackbook
+
 import UIKit
 import FirebaseAuth
 
-class ChatViewController: UIViewController {
+class OrganiserChatViewController: UIViewController {
     let tableView = UITableView()
     let chatManager = FirestoreChatManager()
-    let searchBar = UISearchBar()
-    let titleLabel = UILabel()
 
-    var users: [User] = [] // All users fetched from Firestore
-    var filteredUsers: [User] = [] // Users filtered by search
-    var currentUser: User? // Current logged-in user
+    var users: [User] = [] // Users who sent messages
+    var currentUser: User? // Current logged-in organiser
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupTitleLabel()
-        setupSearchBar()
+        navigationItem.title = "Chats"
         setupTableView()
         fetchCurrentUser()
-    }
-
-    private func setupTitleLabel() {
-        titleLabel.text = "Chat"
-        titleLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
-        titleLabel.textAlignment = .left
-        view.addSubview(titleLabel)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            titleLabel.heightAnchor.constraint(equalToConstant: 40)
-        ])
-    }
-
-    private func setupSearchBar() {
-        searchBar.delegate = self
-        searchBar.placeholder = "Search users"
-        view.addSubview(searchBar)
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+        fetchUsersWhoSentMessages()
     }
 
     private func setupTableView() {
@@ -61,7 +27,7 @@ class ChatViewController: UIViewController {
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -80,13 +46,21 @@ class ChatViewController: UIViewController {
 
             if let currentUser = users.first(where: { $0.id == currentUserID }) {
                 self.currentUser = currentUser
-                self.users = users.filter { $0.id != currentUser.id } // Exclude current user
-                self.filteredUsers = self.users // Initialize filteredUsers with all users
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
+                self.fetchUsersWhoSentMessages()
             } else {
                 print("Current user not found in users collection.")
+            }
+        }
+    }
+
+    private func fetchUsersWhoSentMessages() {
+        guard let currentUser = currentUser else { return }
+
+        chatManager.fetchUsersWhoMessaged(to: currentUser.id) { [weak self] users in
+            guard let self = self else { return }
+            self.users = users
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
             }
         }
     }
@@ -114,9 +88,9 @@ class ChatViewController: UIViewController {
 
 // MARK: - UITableViewDataSource and UITableViewDelegate
 
-extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
+extension OrganiserChatViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredUsers.count
+        return users.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -124,36 +98,20 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
 
-        let user = filteredUsers[indexPath.row]
+        let user = users[indexPath.row]
 
+        // Configure the cell with user details
         cell.configure(
             with: user.name,
-            message: "Tap to start a chat",
-            time: "",
+            message: "Last message will appear here", // You can modify this to fetch the last message
+            time: "", // You can also add timestamp here
             user: user
         )
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedUser = filteredUsers[indexPath.row]
+        let selectedUser = users[indexPath.row]
         startChat(with: selectedUser)
-    }
-}
-
-// MARK: - UISearchBarDelegate
-
-extension ChatViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            filteredUsers = users
-        } else {
-            filteredUsers = users.filter { $0.name.lowercased().contains(searchText.lowercased()) }
-        }
-        tableView.reloadData()
-    }
-
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
     }
 }

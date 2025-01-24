@@ -10,7 +10,12 @@ import UIKit
 import FirebaseFirestore
 
 
-
+struct NotificationItem {
+    let senderId: String
+    let name: String
+    let profileImageURL: String
+    let timestamp: Date
+}
 
 struct Speaker: Codable {
     var name: String
@@ -114,14 +119,19 @@ let formFields = [
 struct User {
     let id: String
     let name: String
-    let profileImage: UIImage?
-    
-    init(id: String, name: String, profileImage: UIImage? = nil) {
+    let profileImage: UIImage? // Local image if available
+    let profileImageURL: String? // URL for remote image
+
+    init(id: String, name: String, profileImage: UIImage? = nil, profileImageURL: String? = nil) {
         self.id = id
         self.name = name
         self.profileImage = profileImage
+        self.profileImageURL = profileImageURL
     }
 }
+
+
+
 
 // ChatMessage model for individual messages
 struct ChatMessage {
@@ -139,6 +149,7 @@ struct ChatMessage {
         self.isSender = isSender
     }
 }
+
 
 // ChatThread model to store a conversation
 struct ChatThread {
@@ -238,25 +249,7 @@ class ChatDataSource {
     }
 }
 
-struct NotificationItem {
-    let id: String
-    let userImage: UIImage?
-    let message: String
-    let timestamp: String // e.g., "30m"
-}
 
-struct NotificationDataSource {
-    static let sampleNotifications: [NotificationItem] = [
-        NotificationItem(id: "1", userImage: UIImage(named: "palak_profile"), message: "Your connection, Palak Seth, recently registered for CAD2.0", timestamp: "30m"),
-        NotificationItem(id: "2", userImage: UIImage(named: "meghna_profile"), message: "Your connection, Mehgana, just joined the photography club!", timestamp: "30m"),
-        NotificationItem(id: "3", userImage: UIImage(named: "SRM_Kzilla"), message: "Recruitments are now open for SRM Zilla!", timestamp: "30m"),
-        NotificationItem(id: "4", userImage: UIImage(named: "nakul_profile"), message: "Your connection, Roushan, signed up for the coding bootcamp", timestamp: "30m"),
-        NotificationItem(id: "5", userImage: UIImage(named: "Dbug_profile"), message: "Dbug Labs presents a 'No Way Web' workshop!", timestamp: "30m"),
-        NotificationItem(id: "6", userImage: UIImage(named: "yash_profile"), message: "Your connection, Yash, is a part of Game Developers Hackathon", timestamp: "30m"),
-        NotificationItem(id: "7", userImage: UIImage(named: "akshay_profile"), message: "Your connection, Akshay, signed up for the 'Tech Talk Series'", timestamp: "30m"),
-        NotificationItem(id: "8", userImage: UIImage(named: "shiv_profile"), message: "Shiv is hosting a dance workshop!", timestamp: "30m")
-    ]
-}
 struct LoginCredentials {
     var userID: String
     var password: String

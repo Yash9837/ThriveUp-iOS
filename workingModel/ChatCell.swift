@@ -6,72 +6,91 @@
 //
 
 import UIKit
+import SDWebImage
 
 class ChatCell: UITableViewCell {
+    static let identifier = "ChatCell"
+
     let profileImageView = UIImageView()
     let nameLabel = UILabel()
     let messageLabel = UILabel()
     let timeLabel = UILabel()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-            super.init(style: style, reuseIdentifier: reuseIdentifier)
-            setupCell()
-        }
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupCell()
+    }
 
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
-        func setupCell() {
+    private func setupCell() {
+        // Profile Image
+        profileImageView.layer.cornerRadius = 25
+        profileImageView.clipsToBounds = true
+        contentView.addSubview(profileImageView)
+
+        // Name Label
+        nameLabel.font = .boldSystemFont(ofSize: 17)
+        contentView.addSubview(nameLabel)
+
+        // Message Label
+        messageLabel.font = .systemFont(ofSize: 15)
+        messageLabel.textColor = .gray
+        contentView.addSubview(messageLabel)
+
+        // Time Label
+        timeLabel.font = .systemFont(ofSize: 13)
+        timeLabel.textColor = .lightGray
+        timeLabel.textAlignment = .right
+        contentView.addSubview(timeLabel)
+
+        // Layout Constraints
+        profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
             // Profile Image
-            profileImageView.layer.cornerRadius = 30
-            profileImageView.clipsToBounds = true
-            contentView.addSubview(profileImageView)
-            
+            profileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            profileImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            profileImageView.widthAnchor.constraint(equalToConstant: 50),
+            profileImageView.heightAnchor.constraint(equalToConstant: 50),
+
             // Name Label
-            nameLabel.font = .boldSystemFont(ofSize: 20)
-            contentView.addSubview(nameLabel)
-            
-            // Message Label
-            messageLabel.font = .systemFont(ofSize: 16)
-            messageLabel.textColor = .gray
-            contentView.addSubview(messageLabel)
-            
+            nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 12),
+            nameLabel.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -8),
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+
             // Time Label
-            timeLabel.font = .systemFont(ofSize: 14)
-            timeLabel.textColor = .lightGray
-            contentView.addSubview(timeLabel)
-            
-            // Layout Constraints
-            profileImageView.translatesAutoresizingMaskIntoConstraints = false
-            nameLabel.translatesAutoresizingMaskIntoConstraints = false
-            messageLabel.translatesAutoresizingMaskIntoConstraints = false
-            timeLabel.translatesAutoresizingMaskIntoConstraints = false
+            timeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            timeLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            timeLabel.widthAnchor.constraint(equalToConstant: 60),
 
-            NSLayoutConstraint.activate([
-                profileImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-                profileImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-                profileImageView.widthAnchor.constraint(equalToConstant: 50),
-                profileImageView.heightAnchor.constraint(equalToConstant: 50),
-                
-                nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-                nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 12),
-                
-                messageLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-                messageLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-                messageLabel.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -8),
-                
-                timeLabel.topAnchor.constraint(equalTo: nameLabel.topAnchor),
-                timeLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
-            ])
+            // Message Label
+            messageLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            messageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            messageLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            messageLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+        ])
+    }
+
+    func configure(with name: String, message: String, time: String, user: User) {
+        nameLabel.text = name
+        messageLabel.text = message
+        timeLabel.text = time
+
+        if let image = user.profileImage {
+            // Use local UIImage
+            profileImageView.image = image
+        } else if let urlString = user.profileImageURL, let url = URL(string: urlString) {
+            // Use remote URL with SDWebImage
+            profileImageView.sd_setImage(with: url, placeholderImage: UIImage(named: "placeholder"))
+        } else {
+            // Fallback to placeholder
+            profileImageView.image = UIImage(named: "placeholder")
         }
-
-        func configure(with name: String, message: String, time: String, profileImage: UIImage?) {
-            nameLabel.text = name
-            messageLabel.text = message
-            timeLabel.text = time
-            profileImageView.image = profileImage
-        }
-
+    }
 }
-

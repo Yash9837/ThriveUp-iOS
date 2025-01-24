@@ -4,9 +4,11 @@
 //
 //  Created by Yash's Mackbook on 14/11/24.
 //
+
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
+import CoreImage.CIFilterBuiltins
 
 class RegistrationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate {
     
@@ -41,6 +43,7 @@ class RegistrationViewController: UIViewController, UITableViewDataSource, UITab
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        fetchUserDetails()
     }
     
     // MARK: - Setup UI
@@ -70,6 +73,33 @@ class RegistrationViewController: UIViewController, UITableViewDataSource, UITab
             submitButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             submitButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+    
+    // MARK: - Fetch User Details
+    private func fetchUserDetails() {
+        guard let currentUser = Auth.auth().currentUser else {
+            print("User not logged in.")
+            return
+        }
+        
+        db.collection("users").document(currentUser.uid).getDocument { [weak self] document, error in
+            guard let self = self, let data = document?.data(), error == nil else {
+                print("Error fetching user details: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            // Pre-fill form fields with user details
+            if let name = data["name"] as? String, let contact = data["ContactDetails"] as? String {
+                for (index, field) in self.formFields.enumerated() {
+                    if field.placeholder.lowercased().contains("name") {
+                        self.formFields[index].value = name
+                    } else if field.placeholder.lowercased().contains("contact") {
+                        self.formFields[index].value = contact
+                    }
+                }
+                self.tableView.reloadData()
+            }
+        }
     }
     
     // MARK: - UITableViewDataSource
@@ -129,18 +159,44 @@ class RegistrationViewController: UIViewController, UITableViewDataSource, UITab
         registrationData["eventId"] = eventId
         registrationData["timestamp"] = Timestamp(date: Date()) // Add timestamp
         
-        // Save to Firestore under a single `registrations` collection
+        // Generate unique QR code data
+        let qrData = [
+            "uid": currentUser.uid,
+            "eventId": eventId
+        ]
+        guard let qrCodeString = try? JSONSerialization.data(withJSONObject: qrData, options: .prettyPrinted),
+              let qrCode = generateQRCode(from: String(data: qrCodeString, encoding: .utf8) ?? "") else {
+            showAlert(title: "Error", message: "Failed to generate QR code.")
+            return
+        }
+        
+        // Save the QR code to Firebase Storage (optional step) or encode it as a Base64 string
+        registrationData["qrCode"] = qrCode.pngData()?.base64EncodedString()
+        
+        // Save to Firestore
         db.collection("registrations").addDocument(data: registrationData) { [weak self] error in
             if let error = error {
                 print("Error saving registration: \(error.localizedDescription)")
                 self?.showAlert(title: "Error", message: "Failed to save registration. Please try again.")
             } else {
                 print("Registration successfully saved for event \(self?.eventId ?? "")")
-                self?.showAlert(title: "Success", message: "Registration successful!", completion: {
+                self?.showAlert(title: "Success", message: "Registration successful! QR Code generated.", completion: {
                     self?.navigationController?.popViewController(animated: true)
                 })
             }
         }
+    }
+    
+    private func generateQRCode(from string: String) -> UIImage? {
+        let filter = CIFilter.qrCodeGenerator()
+        let data = Data(string.utf8)
+        filter.setValue(data, forKey: "inputMessage")
+        
+        guard let outputImage = filter.outputImage else { return nil }
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaledImage = outputImage.transformed(by: transform)
+        
+        return UIImage(ciImage: scaledImage)
     }
     
     // MARK: - Helper Methods

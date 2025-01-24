@@ -1,14 +1,9 @@
-//
-//  OnboardingPageViewController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 18/11/24.
-//
 import UIKit
 
 class OnboardingPageViewController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     private var onboardingPages: [OnboardingViewController] = []
     private let pageControl = UIPageControl()
+    
     private let nextButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Next", for: .normal)
@@ -18,11 +13,32 @@ class OnboardingPageViewController: UIPageViewController, UIPageViewControllerDa
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    private let previousButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Previous", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .orange
+        button.layer.cornerRadius = 10
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isHidden = true // Initially hidden on the first page
+        return button
+    }()
+    
+    private let skipButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Skip", for: .normal)
+        button.setTitleColor(.orange, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     private var currentIndex: Int = 0 {
         didSet {
             pageControl.currentPage = currentIndex
             let isLastPage = currentIndex == onboardingPages.count - 1
             nextButton.setTitle(isLastPage ? "Get Started" : "Next", for: .normal)
+            previousButton.isHidden = currentIndex == 0 // Hide previous button on the first page
         }
     }
     
@@ -31,6 +47,8 @@ class OnboardingPageViewController: UIPageViewController, UIPageViewControllerDa
         setupOnboardingPages()
         setupPageControl()
         setupNextButton()
+        setupPreviousButton()
+        setupSkipButton()
         setupPageViewController()
     }
     
@@ -77,16 +95,52 @@ class OnboardingPageViewController: UIPageViewController, UIPageViewControllerDa
         ])
     }
     
+    private func setupPreviousButton() {
+        previousButton.addTarget(self, action: #selector(previousButtonTapped), for: .touchUpInside)
+        view.addSubview(previousButton)
+        
+        NSLayoutConstraint.activate([
+            previousButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            previousButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            previousButton.widthAnchor.constraint(equalToConstant: 100),
+            previousButton.heightAnchor.constraint(equalToConstant: 50),
+        ])
+    }
+    
+    private func setupSkipButton() {
+        skipButton.addTarget(self, action: #selector(skipButtonTapped), for: .touchUpInside)
+        view.addSubview(skipButton)
+        
+        NSLayoutConstraint.activate([
+            skipButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            skipButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+        ])
+    }
+    
     @objc private func nextButtonTapped() {
         if currentIndex < onboardingPages.count - 1 {
             currentIndex += 1
             setViewControllers([onboardingPages[currentIndex]], direction: .forward, animated: true, completion: nil)
         } else {
-            // Transition to the main app
-            let window = UIApplication.shared.windows.first { $0.isKeyWindow }
-            window?.rootViewController = GeneralTabbarController()
-            UIView.transition(with: window!, duration: 0.5, options: .transitionCrossDissolve, animations: {}, completion: nil)
+            transitionToMainApp()
         }
+    }
+    
+    @objc private func previousButtonTapped() {
+        if currentIndex > 0 {
+            currentIndex -= 1
+            setViewControllers([onboardingPages[currentIndex]], direction: .reverse, animated: true, completion: nil)
+        }
+    }
+    
+    @objc private func skipButtonTapped() {
+        transitionToMainApp()
+    }
+
+    private func transitionToMainApp() {
+        let window = UIApplication.shared.windows.first { $0.isKeyWindow }
+        window?.rootViewController = GeneralTabbarController()
+        UIView.transition(with: window!, duration: 0.5, options: .transitionCrossDissolve, animations: {}, completion: nil)
     }
     
     // MARK: - PageViewController DataSource

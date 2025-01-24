@@ -573,11 +573,14 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         return cell
     }
 
+ 
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let eventDetailVC = EventDetailViewController()
-        eventDetailVC.event = registeredEvents[indexPath.row]
-        navigationController?.pushViewController(eventDetailVC, animated: true)
+        let ticketVC = TicketViewController()
+        ticketVC.eventId = registeredEvents[indexPath.row].eventId
+        navigationController?.pushViewController(ticketVC, animated: true)
     }
+
 
     // MARK: - Segment Control Action
     @objc private func segmentChanged() {
