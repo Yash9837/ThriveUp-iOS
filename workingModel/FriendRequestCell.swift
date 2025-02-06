@@ -1,4 +1,4 @@
-//
+/*//
 //  FriendRequestCell.swift
 //  ThriveUp
 //
@@ -102,5 +102,5 @@ class FriendRequestCell: UITableViewCell {
         rejectButton.isHidden = !showRejectButton // Hide or show the reject button based on parameter
     }
 }
-
+*/
 

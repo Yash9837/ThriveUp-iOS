@@ -2,11 +2,9 @@ import UIKit
 import FirebaseAuth
 import FirebaseFirestore
 
-
 protocol ChatDetailViewControllerDelegate: AnyObject {
     func chatDetailViewControllerDidOpenChat(chatThread: ChatThread)
 }
-
 
 class ChatDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var chatThread: ChatThread? // Thread containing messages and participants
@@ -20,8 +18,6 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     private let inputTextField = UITextField()
     private let sendButton = UIButton(type: .system)
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -30,6 +26,10 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
         setupMessageInputComponents()
         setupTableView()
         fetchMessages() // Start listening for new messages
+        
+        if let chatThread = chatThread {
+            removeNotificationForChatThread(chatThread)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -141,7 +141,7 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     
     @objc private func handleSend() {
         guard let text = inputTextField.text, !text.isEmpty, let chatThread = chatThread else { return }
-
+        
         let messageID = UUID().uuidString
         let messageData: [String: Any] = [
             "id": messageID,
@@ -162,68 +162,87 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     private func fetchMessages() {
-        guard let chatThread = chatThread else { return }
+            guard let chatThread = chatThread else { return }
+            
+            messagesListener = db.collection("chats")
+                .document(chatThread.id)
+                .collection("messages")
+                .order(by: "timestamp", descending: false)
+                .addSnapshotListener { [weak self] snapshot, error in
+                    guard let self = self else { return }
+                    
+                    if let error = error {
+                        print("Error fetching messages: \(error)")
+                        return
+                    }
+                    
+                    guard let documents = snapshot?.documents else { return }
+                    
+                    let newMessages = documents.compactMap { doc -> ChatMessage? in
+                        let data = doc.data()
+                        let id = doc.documentID
+                        let senderID = data["senderId"] as? String ?? ""
+                        let messageContent = data["messageContent"] as? String ?? ""
+                        let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+                        
+                        // Find sender details
+                        let sender = chatThread.participants.first { $0.id == senderID } ?? User(id: senderID, name: "Unknown")
+                        
+                        return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == self.currentUserID)
+                    }
+                    
+                    self.chatThread?.messages = newMessages
+                    self.tableView.reloadData()
+                    self.scrollToBottom()
+                }
+        }
         
-        messagesListener = db.collection("chats")
-            .document(chatThread.id)
-            .collection("messages")
-            .order(by: "timestamp", descending: false)
-            .addSnapshotListener { [weak self] snapshot, error in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    print("Error fetching messages: \(error)")
-                    return
+        private func scrollToBottom() {
+            DispatchQueue.main.async {
+                let rowCount = self.chatThread?.messages.count ?? 0
+                if rowCount > 0 {
+                    let indexPath = IndexPath(row: rowCount - 1, section: 0)
+                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
                 }
-                
-                guard let documents = snapshot?.documents else { return }
-                
-                let newMessages = documents.compactMap { doc -> ChatMessage? in
-                    let data = doc.data()
-                    let id = doc.documentID
-                    let senderID = data["senderId"] as? String ?? ""
-                    let messageContent = data["messageContent"] as? String ?? ""
-                    let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
-                    
-                    // Find sender details
-                    let sender = chatThread.participants.first { $0.id == senderID } ?? User(id: senderID, name: "Unknown")
-                    
-                    return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == self.currentUserID)
-                }
-                
-                self.chatThread?.messages = newMessages
-                self.tableView.reloadData()
-                self.scrollToBottom()
-            }
-    }
-    
-    private func scrollToBottom() {
-        DispatchQueue.main.async {
-            let rowCount = self.chatThread?.messages.count ?? 0
-            if rowCount > 0 {
-                let indexPath = IndexPath(row: rowCount - 1, section: 0)
-                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
             }
         }
-    }
-    
-    // MARK: - UITableViewDataSource
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return chatThread?.messages.count ?? 0
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatMessageCell", for: indexPath) as! ChatMessageCell
-        if let message = chatThread?.messages[indexPath.row] {
-            cell.configure(with: message)
+        
+        // MARK: - UITableViewDataSource
+        
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return chatThread?.messages.count ?? 0
         }
-        return cell
+        
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ChatMessageCell", for: indexPath) as! ChatMessageCell
+            if let message = chatThread?.messages[indexPath.row] {
+                cell.configure(with: message)
+            }
+            return cell
+        }
+        
+        // MARK: - UITableViewDelegate
+        
+        func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+            return UITableView.automaticDimension
+        }
+        
+        private func removeNotificationForChatThread(_ chatThread: ChatThread) {
+            db.collection("notifications")
+                .whereField("senderId", in: chatThread.participants.map { $0.id })
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        print("Error fetching notifications: \(error)")
+                        return
+                    }
+                    
+                    snapshot?.documents.forEach { document in
+                        document.reference.delete { error in
+                            if let error = error {
+                                print("Error deleting notification: \(error)")
+                            }
+                        }
+                    }
+                }
+        }
     }
-    
-    // MARK: - UITableViewDelegate
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableView.automaticDimension
-    }
-}

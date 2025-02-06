@@ -2,8 +2,6 @@
 //  RegistrationsListViewController.swift
 //  ThriveUp
 //
-//  Created by Yash's Mackbook on 09/01/25.
-//
 
 import UIKit
 import FirebaseFirestore
@@ -16,38 +14,26 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
     private let db = Firestore.firestore()
     
     // MARK: - UI Components
-    private let tableViewHeader: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.distribution = .fillEqually
-        stackView.spacing = 8
-
-        let headers = ["S.No", "Name", "Email", "Year"]
-        for header in headers {
-            let label = UILabel()
-            label.text = header
-            label.font = UIFont.boldSystemFont(ofSize: 16)
-            label.textColor = .black
-            label.textAlignment = .center
-            stackView.addArrangedSubview(label)
-        }
-        return stackView
-    }()
-    
     private let registrationsTableView: UITableView = {
         let tableView = UITableView()
         tableView.register(RegistrationTableViewCell.self, forCellReuseIdentifier: RegistrationTableViewCell.identifier)
-        tableView.rowHeight = 60 // Set row height for better UI
+        tableView.rowHeight = 60
+        tableView.separatorStyle = .singleLine
+        tableView.separatorInset = .zero
         return tableView
     }()
     
     private let totalCountLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        label.textColor = .black
-        label.textAlignment = .left
+        label.font = UIFont.boldSystemFont(ofSize: 20) // Larger font size
+        label.textColor = .orange // Standard black text color
+        label.textAlignment = .center // Center aligned text
+        label.text = "Total Registrations: 0" // Default text
         return label
     }()
+
+
+
     
     private let downloadButton: UIButton = {
         let button = UIButton(type: .system)
@@ -74,6 +60,7 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        setupTableHeader() // Setup for headings
         fetchRegistrations()
         downloadButton.addTarget(self, action: #selector(handleDownload), for: .touchUpInside)
     }
@@ -83,7 +70,6 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
         title = "Registrations"
         view.backgroundColor = .white
         view.addSubview(totalCountLabel)
-        view.addSubview(tableViewHeader)
         view.addSubview(registrationsTableView)
         view.addSubview(downloadButton)
         
@@ -92,25 +78,18 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
     }
     
     private func setupConstraints() {
-        tableViewHeader.translatesAutoresizingMaskIntoConstraints = false
-        registrationsTableView.translatesAutoresizingMaskIntoConstraints = false
         totalCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        registrationsTableView.translatesAutoresizingMaskIntoConstraints = false
         downloadButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             // Total Count Label
-            totalCountLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            totalCountLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16), // Space from top
             totalCountLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             totalCountLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            // Table Header
-            tableViewHeader.topAnchor.constraint(equalTo: totalCountLabel.bottomAnchor, constant: 8),
-            tableViewHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tableViewHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableViewHeader.heightAnchor.constraint(equalToConstant: 30),
-            
             // TableView
-            registrationsTableView.topAnchor.constraint(equalTo: tableViewHeader.bottomAnchor, constant: 8),
+            registrationsTableView.topAnchor.constraint(equalTo: totalCountLabel.bottomAnchor, constant: 16), // Increased spacing here
             registrationsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             registrationsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             registrationsTableView.bottomAnchor.constraint(equalTo: downloadButton.topAnchor, constant: -16),
@@ -121,6 +100,28 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
             downloadButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             downloadButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+
+
+    }
+    
+    private func setupTableHeader() {
+        // Create the table header view
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 40))
+        headerView.backgroundColor = UIColor.systemGray6
+        
+        let headers = ["S.No", "Name", "Email", "Year"]
+        let headerWidth = view.frame.width / CGFloat(headers.count)
+        
+        for (index, title) in headers.enumerated() {
+            let label = UILabel(frame: CGRect(x: CGFloat(index) * headerWidth, y: 0, width: headerWidth, height: 40))
+            label.text = title
+            label.font = UIFont.boldSystemFont(ofSize: 16)
+            label.textColor = .black
+            label.textAlignment = .center
+            headerView.addSubview(label)
+        }
+        
+        registrationsTableView.tableHeaderView = headerView
     }
     
     // MARK: - Fetch Registrations
@@ -141,20 +142,13 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
                 }
                 
                 self.registrations = documents.map { $0.data() }
-                
-                // Debugging: Print each registration document
-                for registration in self.registrations {
-                    print("Registration Data: \(registration)")
-                }
-                
                 DispatchQueue.main.async {
                     self.totalCountLabel.text = "Total Number of Registrations: \(self.registrations.count)"
                     self.registrationsTableView.reloadData()
                 }
             }
     }
-
-
+    
     // MARK: - UITableView DataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return registrations.count
@@ -190,7 +184,7 @@ class RegistrationListViewController: UIViewController, UITableViewDataSource, U
         for (index, registration) in registrations.enumerated() {
             let serialNumber = index + 1
             let name = registration["Name"] as? String ?? "N/A"
-            let email = registration["E-mail ID"] as? String ?? "N/A"
+            let email = registration["email"] as? String ?? "N/A"
             let year = registration["Year of Study"] as? String ?? "N/A"
             
             csvString += "\(serialNumber),\"\(name)\",\"\(email)\",\"\(year)\"\n"

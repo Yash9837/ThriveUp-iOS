@@ -1,33 +1,36 @@
-// Yash's Mackbook
-
 import UIKit
+import FirebaseFirestore
 import FirebaseAuth
 
 class OrganiserChatViewController: UIViewController {
-    let tableView = UITableView()
-    let chatManager = FirestoreChatManager()
-
-    var users: [User] = [] // Users who sent messages
-    var currentUser: User? // Current logged-in organiser
+    private let tableView = UITableView()
+    private let chatManager = FirestoreChatManager()
+    private var users: [User] = []
+    private var currentUser: User? // Define the currentUser variable
+    private let currentUserID = Auth.auth().currentUser?.uid ?? ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = "Chats"
+        title = "Organiser Chats"
+
         setupTableView()
         fetchCurrentUser()
-        fetchUsersWhoSentMessages()
     }
 
     private func setupTableView() {
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(ChatCell.self, forCellReuseIdentifier: "ChatCell")
-        tableView.rowHeight = 80
+        tableView.register(ChatCell.self, forCellReuseIdentifier: ChatCell.identifier)
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 80
+        tableView.separatorStyle = .singleLine
+
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -46,41 +49,19 @@ class OrganiserChatViewController: UIViewController {
 
             if let currentUser = users.first(where: { $0.id == currentUserID }) {
                 self.currentUser = currentUser
-                self.fetchUsersWhoSentMessages()
+                self.fetchUsersWhoMessaged()
             } else {
                 print("Current user not found in users collection.")
             }
         }
     }
 
-    private func fetchUsersWhoSentMessages() {
-        guard let currentUser = currentUser else { return }
-
-        chatManager.fetchUsersWhoMessaged(to: currentUser.id) { [weak self] users in
+    private func fetchUsersWhoMessaged() {
+        chatManager.fetchUsersWhoMessaged(to: currentUserID) { [weak self] users in
             guard let self = self else { return }
             self.users = users
             DispatchQueue.main.async {
                 self.tableView.reloadData()
-            }
-        }
-    }
-
-    private func startChat(with otherUser: User) {
-        guard let currentUser = currentUser else {
-            print("Current user is nil. Cannot start chat.")
-            return
-        }
-
-        chatManager.fetchOrCreateChatThread(for: currentUser, with: otherUser) { [weak self] thread in
-            guard let self = self, let thread = thread else {
-                print("Error creating or fetching chat thread.")
-                return
-            }
-
-            DispatchQueue.main.async {
-                let chatDetailVC = ChatDetailViewController()
-                chatDetailVC.chatThread = thread
-                self.navigationController?.pushViewController(chatDetailVC, animated: true)
             }
         }
     }
@@ -99,12 +80,10 @@ extension OrganiserChatViewController: UITableViewDataSource, UITableViewDelegat
         }
 
         let user = users[indexPath.row]
-
-        // Configure the cell with user details
         cell.configure(
             with: user.name,
-            message: "Last message will appear here", // You can modify this to fetch the last message
-            time: "", // You can also add timestamp here
+            message: "Tap to start a chat",
+            time: "",
             user: user
         )
         return cell
@@ -113,5 +92,25 @@ extension OrganiserChatViewController: UITableViewDataSource, UITableViewDelegat
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedUser = users[indexPath.row]
         startChat(with: selectedUser)
+    }
+
+    private func startChat(with otherUser: User) {
+        guard let currentUser = currentUser else {
+            print("Current user is nil. Cannot start chat.")
+            return
+        }
+
+        chatManager.fetchOrCreateChatThread(for: currentUser.id, with: otherUser.id) { [weak self] thread in
+            guard let self = self, let thread = thread else {
+                print("Error creating or fetching chat thread.")
+                return
+            }
+
+            DispatchQueue.main.async {
+                let chatDetailVC = ChatDetailViewController()
+                chatDetailVC.chatThread = thread
+                self.navigationController?.pushViewController(chatDetailVC, animated: true)
+            }
+        }
     }
 }

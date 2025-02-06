@@ -253,9 +253,9 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let category = filteredCategories[indexPath.section]
         if let event = filteredEventsByCategory[category]?[indexPath.item] {
-            let eventDetailsVC = EventDetailViewController()
-            eventDetailsVC.eventId = event.eventId
-            navigationController?.pushViewController(eventDetailsVC, animated: true)
+            let eventContainerVC = EventContainerViewController()
+            eventContainerVC.event = event
+            navigationController?.pushViewController(eventContainerVC, animated: true)
         }
     }
 

@@ -10,11 +10,30 @@ import UIKit
 import FirebaseFirestore
 
 
+
+// FriendRequest model
+struct FriendRequest: Decodable {
+    let id: String
+    let fromUserID: String
+    let toUserID: String
+}
+
+
+// Friend model
+struct Friend: Decodable {
+    let id: String
+    let userID: String
+    let friendID: String
+}
+
+
+
 struct NotificationItem {
-    let senderId: String
-    let name: String
-    let profileImageURL: String
-    let timestamp: Date
+    var id: String
+    var senderId: String
+    var name: String
+    var profileImageURL: String
+    var timestamp: Date
 }
 
 struct Speaker: Codable {
@@ -115,18 +134,51 @@ let formFields = [
     FormField(placeholder: "Department", value: ""),
     FormField(placeholder: "Specialization", value: "")
 ]
+
 // User model
-struct User {
+struct User: Decodable {
     let id: String
     let name: String
-    let profileImage: UIImage? // Local image if available
-    let profileImageURL: String? // URL for remote image
+    let profileImageURL: String?
+
+    // Note: UIImage cannot be directly encoded/decoded, so it's excluded from Codable
+    var profileImage: UIImage? {
+        didSet {
+            // If needed, add code to handle changes to the profile image (e.g., upload to storage, update URL)
+        }
+    }
 
     init(id: String, name: String, profileImage: UIImage? = nil, profileImageURL: String? = nil) {
         self.id = id
         self.name = name
-        self.profileImage = profileImage
         self.profileImageURL = profileImageURL
+        self.profileImage = profileImage
+    }
+
+    // Define CodingKeys enum to map property names to JSON keys
+    enum CodingKeys: String, CodingKey {
+        case id = "uid"
+        case name
+        case profileImageURL
+    }
+
+    // Custom initializer to decode the profileImage from a URL if needed
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        profileImageURL = try container.decodeIfPresent(String.self, forKey: .profileImageURL)
+
+        // If needed, you can add logic here to load the UIImage from profileImageURL
+        profileImage = nil
+    }
+
+    // Custom encode method to exclude UIImage from encoding
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(profileImageURL, forKey: .profileImageURL)
     }
 }
 
@@ -165,29 +217,7 @@ struct ChatThread {
 }
 
 // FriendRequest model with sample data for Quick Add and Added Me sections
-struct FriendRequest {
-    let name: String
-    let username: String
-    let profileImage: UIImage?
-    let actionTitle: String
-    let isQuickAdd: Bool // differentiate between "Added Me" and "Quick Add"
-    
-    static let sampleData: [FriendRequest] = [
-        // Added Me section
-        FriendRequest(name: "Riya Rao", username: "riya_rao08", profileImage: UIImage(named: "riya_profile"), actionTitle: "Accept", isQuickAdd: false),
-        FriendRequest(name: "Sanidhya Singh", username: "san_0987_singh", profileImage: UIImage(named: "sanidhya_profile"), actionTitle: "Accept", isQuickAdd: false),
-        FriendRequest(name: "Yash Gupta", username: "moody_yash08", profileImage: UIImage(named: "yash_profile"), actionTitle: "Accept", isQuickAdd: false),
-        FriendRequest(name: "Abhivesh Shukla", username: "abhi_sheesh08", profileImage: UIImage(named: "abhivesh_profile"), actionTitle: "Accept", isQuickAdd: false),
-        FriendRequest(name: "Tanisha Jain", username: "tanvi0936_jain", profileImage: UIImage(named: "tanisha_profile"), actionTitle: "Accept", isQuickAdd: false),
-        
-        // Quick Add section
-        FriendRequest(name: "Nakul", username: "nakul_lim09", profileImage: UIImage(named: "nakul_profile"), actionTitle: "Add", isQuickAdd: true),
-        FriendRequest(name: "Saurav", username: "saurav_network", profileImage: UIImage(named: "saurav_profile"), actionTitle: "Add", isQuickAdd: true),
-        FriendRequest(name: "Akshay", username: "akshay_network", profileImage: UIImage(named: "akshay_profile"), actionTitle: "Add", isQuickAdd: true),
-        FriendRequest(name: "Palak", username: "palak_net", profileImage: UIImage(named: "palak_profile"), actionTitle: "Add", isQuickAdd: true),
-        FriendRequest(name: "Rachita", username: "rachita_intern", profileImage: UIImage(named: "rachita_profile"), actionTitle: "Add", isQuickAdd: true),
-    ]
-}
+
 
 // ChatDataSource class to manage chat threads and messages
 class ChatDataSource {

@@ -68,10 +68,21 @@
 		57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */; };
 		57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */; };
 		57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */; };
+		782F35712D4FBD3700DA461E /* FriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35702D4FBD3200DA461E /* FriendsViewController.swift */; };
+		782F35732D4FCF8900DA461E /* FriendsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35722D4FCF8900DA461E /* FriendsService.swift */; };
+		782F35752D4FCFD600DA461E /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */; };
+		782F35792D554CCB00DA461E /* iOSOnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35782D554CCB00DA461E /* iOSOnboardingViewController.swift */; };
 		7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7841AAA12D36902E00438FE0 /* InterestsViewController.swift */; };
 		7852F5FE2D43C81A0068F229 /* TicketViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F5FD2D43C81A0068F229 /* TicketViewController.swift */; };
 		7852F6022D43F72C0068F229 /* OrganiserEventDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */; };
 		7852F6042D43F7C90068F229 /* OrganiserChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */; };
+		7852F6062D440F5C0068F229 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 7852F6052D440F5C0068F229 /* FirebaseMessaging */; };
+		7852F6092D44201A0068F229 /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 7852F6082D44201A0068F229 /* OneSignalExtension */; };
+		7852F60B2D44201A0068F229 /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 7852F60A2D44201A0068F229 /* OneSignalFramework */; };
+		7852F60D2D44201A0068F229 /* OneSignalInAppMessages in Frameworks */ = {isa = PBXBuildFile; productRef = 7852F60C2D44201A0068F229 /* OneSignalInAppMessages */; };
+		7852F6112D456DE50068F229 /* EventContainerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6102D456DE50068F229 /* EventContainerViewController.swift */; };
+		7852F6132D456E4A0068F229 /* UpdatesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6122D456E4A0068F229 /* UpdatesViewController.swift */; };
+		7852F6152D456E500068F229 /* PhotosViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7852F6142D456E500068F229 /* PhotosViewController.swift */; };
 		78B8D2D92D38E7510004AD09 /* Instructions in Frameworks */ = {isa = PBXBuildFile; productRef = 78B8D2D82D38E7510004AD09 /* Instructions */; };
 		78BE28962D385318002BF1EB /* TagViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */; };
 		78ED42F62D400E9800FF3017 /* EventsCardsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */; };
@@ -151,10 +162,17 @@
 		57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEventViewController.swift; sourceTree = "<group>"; };
 		57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPostedViewController.swift; sourceTree = "<group>"; };
 		57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerProfileViewController.swift; sourceTree = "<group>"; };
+		782F35702D4FBD3200DA461E /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
+		782F35722D4FCF8900DA461E /* FriendsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsService.swift; sourceTree = "<group>"; };
+		782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
+		782F35782D554CCB00DA461E /* iOSOnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSOnboardingViewController.swift; sourceTree = "<group>"; };
 		7841AAA12D36902E00438FE0 /* InterestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestsViewController.swift; sourceTree = "<group>"; };
 		7852F5FD2D43C81A0068F229 /* TicketViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketViewController.swift; sourceTree = "<group>"; };
 		7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganiserEventDetailViewController.swift; sourceTree = "<group>"; };
 		7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganiserChatViewController.swift; sourceTree = "<group>"; };
+		7852F6102D456DE50068F229 /* EventContainerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventContainerViewController.swift; sourceTree = "<group>"; };
+		7852F6122D456E4A0068F229 /* UpdatesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesViewController.swift; sourceTree = "<group>"; };
+		7852F6142D456E500068F229 /* PhotosViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosViewController.swift; sourceTree = "<group>"; };
 		78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagViewControllerDelegate.swift; sourceTree = "<group>"; };
 		78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsCardsViewController.swift; sourceTree = "<group>"; };
 		78ED42F92D42B24B00FF3017 /* OrganizerEventListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerEventListViewController.swift; sourceTree = "<group>"; };
@@ -168,9 +186,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7852F60D2D44201A0068F229 /* OneSignalInAppMessages in Frameworks */,
+				7852F6062D440F5C0068F229 /* FirebaseMessaging in Frameworks */,
 				572D8A402D0D5E4300DAB286 /* FirebaseDatabase in Frameworks */,
+				7852F60B2D44201A0068F229 /* OneSignalFramework in Frameworks */,
 				572D8A382D0D5E4300DAB286 /* FirebaseAnalytics in Frameworks */,
 				572D8A3C2D0D5E4300DAB286 /* FirebaseAuth in Frameworks */,
+				7852F6092D44201A0068F229 /* OneSignalExtension in Frameworks */,
 				572D8A3E2D0D5E4300DAB286 /* FirebaseCore in Frameworks */,
 				78ED43032D42C1B900FF3017 /* SDWebImage in Frameworks */,
 				572D8A3A2D0D5E4300DAB286 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
@@ -206,11 +228,18 @@
 		577DA1BC2CE3999000760BFA /* ThriveUp */ = {
 			isa = PBXGroup;
 			children = (
+				782F35782D554CCB00DA461E /* iOSOnboardingViewController.swift */,
+				782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */,
+				782F35722D4FCF8900DA461E /* FriendsService.swift */,
 				7852F6032D43F7C90068F229 /* OrganiserChatViewController.swift */,
 				7852F6012D43F72C0068F229 /* OrganiserEventDetailViewController.swift */,
 				7852F5FD2D43C81A0068F229 /* TicketViewController.swift */,
+				7852F6102D456DE50068F229 /* EventContainerViewController.swift */,
+				7852F6122D456E4A0068F229 /* UpdatesViewController.swift */,
+				782F35702D4FBD3200DA461E /* FriendsViewController.swift */,
 				78ED42F52D400E9800FF3017 /* EventsCardsViewController.swift */,
 				577DA1BD2CE3999000760BFA /* AppDelegate.swift */,
+				7852F6142D456E500068F229 /* PhotosViewController.swift */,
 				7841AAA12D36902E00438FE0 /* InterestsViewController.swift */,
 				78BE28952D385318002BF1EB /* TagViewControllerDelegate.swift */,
 				57D9779C2CEB085A004B1314 /* File.swift */,
@@ -320,6 +349,10 @@
 				78B8D2D82D38E7510004AD09 /* Instructions */,
 				78ED43022D42C1B900FF3017 /* SDWebImage */,
 				78ED43042D42C1B900FF3017 /* SDWebImageMapKit */,
+				7852F6052D440F5C0068F229 /* FirebaseMessaging */,
+				7852F6082D44201A0068F229 /* OneSignalExtension */,
+				7852F60A2D44201A0068F229 /* OneSignalFramework */,
+				7852F60C2D44201A0068F229 /* OneSignalInAppMessages */,
 			);
 			productName = workingModel;
 			productReference = 577DA1BA2CE3999000760BFA /* ThriveUp.app */;
@@ -353,6 +386,7 @@
 				572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */,
 				78ED43012D42C1B900FF3017 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+				7852F6072D44201A0068F229 /* XCRemoteSwiftPackageReference "OneSignal-iOS-SDK" */,
 			);
 			productRefGroup = 577DA1BB2CE3999000760BFA /* Products */;
 			projectDirPath = "";
@@ -417,6 +451,7 @@
 				57CDC67A2D30475900836984 /* RegistrationTableViewCell.swift in Sources */,
 				57CDC6782D30451000836984 /* RegistrationsListViewController.swift in Sources */,
 				57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */,
+				7852F6132D456E4A0068F229 /* UpdatesViewController.swift in Sources */,
 				57D977A92CEB881B004B1314 /* SplashViewController.swift in Sources */,
 				577DA1D22CE3BDBB00760BFA /* DataModel.swift in Sources */,
 				57D977A32CEB7647004B1314 /* OnboardingViewController.swift in Sources */,
@@ -437,7 +472,9 @@
 				577DA2DA2CE88F7A00760BFA /* SavedRegistrationViewController.swift in Sources */,
 				78BE28962D385318002BF1EB /* TagViewControllerDelegate.swift in Sources */,
 				57D977992CE9C9BF004B1314 /* RegistrationDataViewController.swift in Sources */,
+				782F35792D554CCB00DA461E /* iOSOnboardingViewController.swift in Sources */,
 				57D977A72CEB8121004B1314 /* OnboardingPageViewController.swift in Sources */,
+				7852F6152D456E500068F229 /* PhotosViewController.swift in Sources */,
 				577DA2D82CE88F2100760BFA /* ChatViewController.swift in Sources */,
 				7852F5FE2D43C81A0068F229 /* TicketViewController.swift in Sources */,
 				577DA2F42CE8A82900760BFA /* GeneralTabbarController.swift in Sources */,
@@ -447,9 +484,12 @@
 				7852F6022D43F72C0068F229 /* OrganiserEventDetailViewController.swift in Sources */,
 				78ED43002D42C14800FF3017 /* FirestoreChatManager.swift in Sources */,
 				577DA2DE2CE88FE700760BFA /* LoginViewController.swift in Sources */,
+				782F35732D4FCF8900DA461E /* FriendsService.swift in Sources */,
 				577DA2EE2CE8922B00760BFA /* NotificationCell.swift in Sources */,
 				39DF783A2CE9AF5E004B8244 /* SwipeViewController.swift in Sources */,
 				577DA2DC2CE88FC500760BFA /* SavedRegistrationCell.swift in Sources */,
+				7852F6112D456DE50068F229 /* EventContainerViewController.swift in Sources */,
+				782F35752D4FCFD600DA461E /* FriendRequestsViewController.swift in Sources */,
 				57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */,
 				577DA2EC2CE891FF00760BFA /* NotificationsViewController.swift in Sources */,
 				7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */,
@@ -459,6 +499,7 @@
 				577DA2E62CE890EA00760BFA /* AddFriendsViewController.swift in Sources */,
 				577DA2E22CE8909600760BFA /* ChatMessageCell.swift in Sources */,
 				572D8A492D0D9E5B00DAB286 /* EventRegistrationViewController.swift in Sources */,
+				782F35712D4FBD3700DA461E /* FriendsViewController.swift in Sources */,
 				577DA1C02CE3999000760BFA /* SceneDelegate.swift in Sources */,
 				57D9779D2CEB085A004B1314 /* File.swift in Sources */,
 				57D977A12CEB145A004B1314 /* UpdateCell.swift in Sources */,
@@ -623,7 +664,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.yash.workingModel;
+				PRODUCT_BUNDLE_IDENTIFIER = me.sanidhyasingh.workingModel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -655,7 +696,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.yash.workingModel;
+				PRODUCT_BUNDLE_IDENTIFIER = me.sanidhyasingh.workingModel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -694,6 +735,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 11.6.0;
+			};
+		};
+		7852F6072D44201A0068F229 /* XCRemoteSwiftPackageReference "OneSignal-iOS-SDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/OneSignal/OneSignal-iOS-SDK.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.9;
 			};
 		};
 		78B8D2D72D38E7510004AD09 /* XCRemoteSwiftPackageReference "Instructions" */ = {
@@ -754,6 +803,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		7852F6052D440F5C0068F229 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 572D8A362D0D5E4300DAB286 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		7852F6082D44201A0068F229 /* OneSignalExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7852F6072D44201A0068F229 /* XCRemoteSwiftPackageReference "OneSignal-iOS-SDK" */;
+			productName = OneSignalExtension;
+		};
+		7852F60A2D44201A0068F229 /* OneSignalFramework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7852F6072D44201A0068F229 /* XCRemoteSwiftPackageReference "OneSignal-iOS-SDK" */;
+			productName = OneSignalFramework;
+		};
+		7852F60C2D44201A0068F229 /* OneSignalInAppMessages */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7852F6072D44201A0068F229 /* XCRemoteSwiftPackageReference "OneSignal-iOS-SDK" */;
+			productName = OneSignalInAppMessages;
 		};
 		78B8D2D82D38E7510004AD09 /* Instructions */ = {
 			isa = XCSwiftPackageProductDependency;

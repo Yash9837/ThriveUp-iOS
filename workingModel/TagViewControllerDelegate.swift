@@ -21,11 +21,16 @@ class TagViewController: UIViewController, UICollectionViewDelegate, UICollectio
 
     // Data structure for tags
     private let tags: [String: [String]] = [
-        "Creativity": ["Art 🎨", "Design ✏️", "Make-up 💄", "Photography 📸", "Writing 📝", "Singing 🎤", "Dancing 💃", "Crafts 📎", "Making videos 📼"],
-        "Sports": ["Yoga 🧘", "Running 👟", "Gym 🏋️", "Soccer ⚽", "Cricket 🏏", "Tennis 🎾", "Badminton 🏸", "Basketball 🏀"],
-        "Date Preference": ["Weekday 📅", "Weekend 🌞"],
-        "Categories": ["Tech 💻", "Fun 🎉", "Entertainment 🎭", "Wellness 🧘‍♀️", "Networking 🤝", "Cultural 🎨", "Student Clubs 👩‍🎓"],
-        "Participants": ["Solo 🧍", "Duo 👫", "Team 👥"]
+        "Academic": ["Workshops", "Seminars", "Conferences"],
+        "Cultural": ["Festival", "Dance", "Music", "Art Exhibition", "Pro Shows"],
+        "Sports": ["Tournaments", "Hostel Day Events", "Yoga Day Events", "Outdoor Activities"],
+        "Networking": ["Career Fairs", "Alumni Meetups", "Guest Lectures", "Professional Development Event"],
+        "Club & Society": ["Club Meetings", "Club Recruitements", "Social Events"],
+        "Health & Wellness": ["Health Camps", "Mental Health Workshops", "Yoga Classes", "Wellness Seminars"],
+        "Community Service": ["Volunteering Opportunities", "Blood Donation", "Community Clean-up Events", "Charity Fundraisers"],
+        "Tech & Innovation": ["Hackathons", "Tech Talks", "Startup Pitches", "Coding Competition"],
+        "Entertainment": ["Movie Screenings", "Game Nioghts", "Talent Shows", "Open Mic Events"],
+        "Miscellaneous": ["Orientation Sessions","Special Interest Events"],
     ]
 
     var selectedTags = [String]()

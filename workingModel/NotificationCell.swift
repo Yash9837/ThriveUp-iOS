@@ -33,12 +33,12 @@ class NotificationCell: UITableViewCell {
         containerView.addSubview(userImageView)
 
         // Configure name label
-        nameLabel.font = UIFont.preferredFont(forTextStyle: .headline)
+        nameLabel.font = UIFont.systemFont(ofSize: 14) // Decreased font size
         nameLabel.numberOfLines = 0 // Allow multiple lines
         containerView.addSubview(nameLabel)
 
         // Configure timestamp label
-        timestampLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        timestampLabel.font = UIFont.systemFont(ofSize: 12) // Decreased font size
         timestampLabel.textColor = .systemGray
         timestampLabel.textAlignment = .right
         containerView.addSubview(timestampLabel)

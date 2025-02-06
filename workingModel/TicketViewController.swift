@@ -8,21 +8,13 @@
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
-import SDWebImage // Ensure SDWebImage is installed via CocoaPods, Carthage, or Swift Package Manager.
+import SDWebImage
 
 class TicketViewController: UIViewController {
     // MARK: - Properties
     var eventId: String? // Passed from ProfileViewController
     var eventDetails: [String: Any]? // Event details fetched from Firestore
 
-    private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.alpha = 0.8 // Slight transparency for background
-        return imageView
-    }()
-    
     private let ticketContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
@@ -34,19 +26,20 @@ class TicketViewController: UIViewController {
         return view
     }()
     
-    private let headerContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.systemGray6
-        view.layer.cornerRadius = 20
-        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        return view
+    private let headerBackgroundImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 20
+        imageView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner] // Rounded only on the top
+        return imageView
     }()
     
     private let userNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textAlignment = .center
-        label.text = "User Name"
+        label.textColor = .black
         return label
     }()
     
@@ -55,7 +48,6 @@ class TicketViewController: UIViewController {
         label.font = UIFont.boldSystemFont(ofSize: 18)
         label.textAlignment = .center
         label.textColor = .darkGray
-        label.text = "Event Title"
         return label
     }()
     
@@ -94,7 +86,6 @@ class TicketViewController: UIViewController {
         label.font = UIFont.monospacedSystemFont(ofSize: 16, weight: .regular)
         label.textAlignment = .center
         label.textColor = .darkGray
-        label.text = "QR Data"
         return label
     }()
     
@@ -109,12 +100,10 @@ class TicketViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.addSubview(backgroundImageView)
         view.addSubview(ticketContainerView)
-        ticketContainerView.addSubview(headerContainerView)
-        headerContainerView.addSubview(userNameLabel)
-        headerContainerView.addSubview(titleLabel)
-        
+        ticketContainerView.addSubview(headerBackgroundImageView)
+        ticketContainerView.addSubview(userNameLabel)
+        ticketContainerView.addSubview(titleLabel)
         ticketContainerView.addSubview(dateTimeLabel)
         ticketContainerView.addSubview(locationLabel)
         ticketContainerView.addSubview(separatorView)
@@ -122,9 +111,8 @@ class TicketViewController: UIViewController {
         ticketContainerView.addSubview(barcodeLabel)
         
         // Constraints
-        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         ticketContainerView.translatesAutoresizingMaskIntoConstraints = false
-        headerContainerView.translatesAutoresizingMaskIntoConstraints = false
+        headerBackgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         userNameLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         dateTimeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -134,30 +122,25 @@ class TicketViewController: UIViewController {
         barcodeLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
-            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
             ticketContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             ticketContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             ticketContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
-            ticketContainerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.65),
+            ticketContainerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.75), // Adjusted height
             
-            headerContainerView.topAnchor.constraint(equalTo: ticketContainerView.topAnchor),
-            headerContainerView.leadingAnchor.constraint(equalTo: ticketContainerView.leadingAnchor),
-            headerContainerView.trailingAnchor.constraint(equalTo: ticketContainerView.trailingAnchor),
-            headerContainerView.heightAnchor.constraint(equalTo: ticketContainerView.heightAnchor, multiplier: 0.25),
+            headerBackgroundImageView.topAnchor.constraint(equalTo: ticketContainerView.topAnchor),
+            headerBackgroundImageView.leadingAnchor.constraint(equalTo: ticketContainerView.leadingAnchor),
+            headerBackgroundImageView.trailingAnchor.constraint(equalTo: ticketContainerView.trailingAnchor),
+            headerBackgroundImageView.heightAnchor.constraint(equalTo: ticketContainerView.heightAnchor, multiplier: 0.3),
             
-            userNameLabel.topAnchor.constraint(equalTo: headerContainerView.topAnchor, constant: 16),
-            userNameLabel.leadingAnchor.constraint(equalTo: headerContainerView.leadingAnchor, constant: 16),
-            userNameLabel.trailingAnchor.constraint(equalTo: headerContainerView.trailingAnchor, constant: -16),
+            userNameLabel.topAnchor.constraint(equalTo: headerBackgroundImageView.bottomAnchor, constant: 8),
+            userNameLabel.leadingAnchor.constraint(equalTo: ticketContainerView.leadingAnchor, constant: 16),
+            userNameLabel.trailingAnchor.constraint(equalTo: ticketContainerView.trailingAnchor, constant: -16),
             
-            titleLabel.topAnchor.constraint(equalTo: userNameLabel.bottomAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: headerContainerView.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: headerContainerView.trailingAnchor, constant: -16),
+            titleLabel.topAnchor.constraint(equalTo: userNameLabel.bottomAnchor, constant: 4),
+            titleLabel.leadingAnchor.constraint(equalTo: ticketContainerView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: ticketContainerView.trailingAnchor, constant: -16),
             
-            dateTimeLabel.topAnchor.constraint(equalTo: headerContainerView.bottomAnchor, constant: 16),
+            dateTimeLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
             dateTimeLabel.leadingAnchor.constraint(equalTo: ticketContainerView.leadingAnchor, constant: 16),
             dateTimeLabel.trailingAnchor.constraint(equalTo: ticketContainerView.trailingAnchor, constant: -16),
             
@@ -220,9 +203,9 @@ class TicketViewController: UIViewController {
                 self.dateTimeLabel.text = "Date: \(data["date"] as? String ?? "Unknown")\nTime: \(data["time"] as? String ?? "Unknown")"
                 self.locationLabel.text = "Location: \(data["location"] as? String ?? "Unknown")"
                 
-                // Load event image
+                // Load event image for header background
                 if let imageUrl = data["imageName"] as? String {
-                    self.backgroundImageView.sd_setImage(with: URL(string: imageUrl), placeholderImage: nil)
+                    self.headerBackgroundImageView.sd_setImage(with: URL(string: imageUrl), placeholderImage: nil)
                 }
             }
         }
@@ -234,7 +217,7 @@ class TicketViewController: UIViewController {
         let db = Firestore.firestore()
         db.collection("users").document(userId).getDocument { [weak self] document, error in
             guard let self = self, let data = document?.data(), error == nil else {
-                print("Error fetching user name: \(error?.localizedDescription ?? "Unknown error")")
+                print("Error fetching user name: \(error?.localizedDescription)")
                 return
             }
             
@@ -252,7 +235,7 @@ class TicketViewController: UIViewController {
                 self.qrImageView.image = qrImage
             }
             
-            self.barcodeLabel.text = "QR Data: \(details["qrCode"] as? String ?? "Unknown")"
+//            self.barcodeLabel.text = "QR Data: \(details["qrCode"] as? String ?? "Unknown")"
         }
     }
 }

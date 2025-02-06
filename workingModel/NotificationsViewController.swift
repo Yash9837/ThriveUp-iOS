@@ -6,9 +6,11 @@ import FirebaseStorage
 class NotificationsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, ChatDetailViewControllerDelegate {
     private let tableView = UITableView()
     private var notifications: [NotificationItem] = []
+    private var handledNotificationIDs: Set<String> = Set(UserDefaults.standard.array(forKey: "handledNotificationIDs") as? [String] ?? []) // Load handled notifications from UserDefaults
     private var db = Firestore.firestore()
     private var chatsListener: ListenerRegistration?
     private let currentUserID = Auth.auth().currentUser?.uid ?? ""
+    private let chatManager = FirestoreChatManager()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,12 +82,16 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
                 let data = document.data()
                 let senderID = data["senderId"] as? String ?? ""
                 let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
-                
-                self.fetchUserDetails(senderID: senderID, timestamp: timestamp)
+                let messageID = document.documentID
+
+                // Check if the notification has already been handled
+                if !self.handledNotificationIDs.contains(messageID) {
+                    self.fetchUserDetails(senderID: senderID, timestamp: timestamp, messageID: messageID)
+                }
             }
     }
 
-    private func fetchUserDetails(senderID: String, timestamp: Date) {
+    private func fetchUserDetails(senderID: String, timestamp: Date, messageID: String) {
         db.collection("users").document(senderID).getDocument { [weak self] document, error in
             guard let self = self else { return }
             
@@ -100,11 +106,32 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
             let name = data?["name"] as? String ?? "Unknown"
             let profileImageURL = data?["profileImageURL"] as? String ?? ""
             
-            let notification = NotificationItem(senderId: senderID, name: name, profileImageURL: profileImageURL, timestamp: timestamp)
-            self.notifications.append(notification)
-            
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
+            // Validate the URL scheme
+            if let url = URL(string: profileImageURL), ["gs", "http", "https"].contains(url.scheme) {
+                let notification = NotificationItem(
+                    id: messageID, // Use message ID as the notification ID
+                    senderId: senderID,
+                    name: name,
+                    profileImageURL: profileImageURL,
+                    timestamp: timestamp
+                )
+                self.notifications.append(notification)
+                self.handledNotificationIDs.insert(messageID) // Add to handled notifications
+                
+                // Store notification in Firestore
+                self.db.collection("notifications").document(notification.id).setData([
+                    "id": notification.id,
+                    "senderId": notification.senderId,
+                    "name": notification.name,
+                    "profileImageURL": notification.profileImageURL,
+                    "timestamp": Timestamp(date: notification.timestamp)
+                ])
+                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            } else {
+                print("Invalid URL scheme for profileImageURL: \(profileImageURL)")
             }
         }
     }
@@ -129,11 +156,16 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         
         // Open chat detail view controller
         let notification = notifications[indexPath.row]
-        let chatDetailVC = ChatDetailViewController()
-        // Ensure chatThread is properly initialized and passed
-        chatDetailVC.chatThread = getChatThread(for: notification.senderId)
-        chatDetailVC.delegate = self
-        navigationController?.pushViewController(chatDetailVC, animated: true)
+        fetchChatThread(for: notification.senderId) { chatThread in
+            guard let chatThread = chatThread else { return }
+            let chatDetailVC = ChatDetailViewController()
+            chatDetailVC.chatThread = chatThread
+            chatDetailVC.delegate = self
+            self.navigationController?.pushViewController(chatDetailVC, animated: true)
+            
+            // Remove notification from Firestore
+            self.removeNotificationFromFirestore(notification: notification)
+        }
     }
 
     // MARK: - ChatDetailViewControllerDelegate
@@ -144,9 +176,22 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.reloadData()
     }
     
-    private func getChatThread(for senderId: String) -> ChatThread? {
-        // Implement logic to retrieve or create a ChatThread object based on senderId
-        // This is a placeholder implementation and should be replaced with actual logic
-        return nil
+    private func fetchChatThread(for senderId: String, completion: @escaping (ChatThread?) -> Void) {
+        chatManager.fetchOrCreateChatThread(for: currentUserID, with: senderId) { chatThread in
+            completion(chatThread)
+        }
+    }
+    
+    private func removeNotificationFromFirestore(notification: NotificationItem) {
+        db.collection("notifications").document(notification.id).delete { error in
+            if let error = error {
+                print("Error removing notification: \(error)")
+            } else {
+                // Ensure the notification is not added again
+                self.handledNotificationIDs.insert(notification.id)
+                // Save handled notifications to UserDefaults
+                UserDefaults.standard.set(Array(self.handledNotificationIDs), forKey: "handledNotificationIDs")
+            }
+        }
     }
 }

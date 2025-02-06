@@ -1,10 +1,3 @@
-// 
-//
-//  ChatViewController.swift
-//  ThriveUp
-//
-//  Created by palak seth on 13/11/24.
-//
 import UIKit
 import FirebaseAuth
 
@@ -13,7 +6,10 @@ class ChatViewController: UIViewController {
     let chatManager = FirestoreChatManager()
     let searchBar = UISearchBar()
     let titleLabel = UILabel()
-
+    let friendsButton = UIButton(type: .system)
+    let titleStackView = UIStackView()
+    let friendRequestsButton = UIButton(type: .system)
+    
     var users: [User] = [] // All users fetched from Firestore
     var filteredUsers: [User] = [] // Users filtered by search
     var currentUser: User? // Current logged-in user
@@ -21,23 +17,44 @@ class ChatViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupTitleLabel()
+        setupTitleStackView()
         setupSearchBar()
         setupTableView()
         fetchCurrentUser()
     }
 
-    private func setupTitleLabel() {
+    private func setupTitleStackView() {
+        // Configure titleLabel
         titleLabel.text = "Chat"
         titleLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
         titleLabel.textAlignment = .left
-        view.addSubview(titleLabel)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        // Configure friendsButton
+        friendsButton.setTitle("Friends", for: .normal)
+        friendsButton.addTarget(self, action: #selector(openFriendsViewController), for: .touchUpInside)
+        
+        // Configure friendRequestsButton
+        friendRequestsButton.setTitle("Requests", for: .normal)
+
+        // Configure titleStackView
+        titleStackView.axis = .horizontal
+        titleStackView.alignment = .center
+        titleStackView.distribution = .equalSpacing
+        titleStackView.spacing = 8
+
+        // Add titleLabel and buttons to titleStackView
+        titleStackView.addArrangedSubview(titleLabel)
+        titleStackView.addArrangedSubview(friendsButton)
+        titleStackView.addArrangedSubview(friendRequestsButton)
+
+        // Add titleStackView to the view
+        view.addSubview(titleStackView)
+        titleStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            titleLabel.heightAnchor.constraint(equalToConstant: 40)
+            titleStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleStackView.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
 
@@ -47,7 +64,7 @@ class ChatViewController: UIViewController {
         view.addSubview(searchBar)
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            searchBar.topAnchor.constraint(equalTo: titleStackView.bottomAnchor, constant: 8),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
@@ -67,6 +84,13 @@ class ChatViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+
+    @objc private func openFriendsViewController() {
+        let friendsVC = FriendsViewController()
+        friendsVC.currentUser = currentUser
+        navigationController?.pushViewController(friendsVC, animated: true)
+    }
+
 
     private func fetchCurrentUser() {
         guard let firebaseUser = Auth.auth().currentUser else {
@@ -97,7 +121,7 @@ class ChatViewController: UIViewController {
             return
         }
 
-        chatManager.fetchOrCreateChatThread(for: currentUser, with: otherUser) { [weak self] thread in
+        chatManager.fetchOrCreateChatThread(for: currentUser.id, with: otherUser.id) { [weak self] thread in
             guard let self = self, let thread = thread else {
                 print("Error creating or fetching chat thread.")
                 return
@@ -127,9 +151,9 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
         let user = filteredUsers[indexPath.row]
 
         cell.configure(
-            with: user.name,
-            message: "Tap to start a chat",
-            time: "",
+            with: user.name, // Assuming user.name is a String
+            message: "Tap to start a chat", // Static message
+            time: "", // Empty time string
             user: user
         )
         return cell

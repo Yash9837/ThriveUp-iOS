@@ -1,4 +1,4 @@
-import UIKit
+/*import UIKit
 
 class AddFriendsViewController: UIViewController {
     
@@ -221,4 +221,4 @@ extension AddFriendsViewController: UICollectionViewDataSource, UICollectionView
     }
 }
 
-
+*/

@@ -113,12 +113,59 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
             return
         }
 
+        // Add preview layer
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession!)
         previewLayer?.frame = view.layer.bounds
         previewLayer?.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer!)
 
+        // Add a "Cross" button to exit
+        let crossButton = UIButton(type: .system)
+        crossButton.setTitle("✕", for: .normal)
+        crossButton.setTitleColor(.white, for: .normal)
+        crossButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        crossButton.layer.cornerRadius = 20
+        crossButton.addTarget(self, action: #selector(closeQRCodeScanner), for: .touchUpInside)
+        crossButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(crossButton)
+
+        // Tag the cross button to remove it later
+        crossButton.tag = 999
+
+        // Set constraints for the Cross button
+        NSLayoutConstraint.activate([
+            crossButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            crossButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            crossButton.widthAnchor.constraint(equalToConstant: 40),
+            crossButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
         captureSession?.startRunning()
+    }
+
+    @objc private func closeQRCodeScanner() {
+        stopQRCodeScanner()
+
+        // Remove the Cross button
+        if let crossButton = view.viewWithTag(999) {
+            crossButton.removeFromSuperview()
+        }
+
+        navigationController?.popViewController(animated: true) // Navigate back to the home screen
+    }
+
+    private func stopQRCodeScanner() {
+        DispatchQueue.main.async {
+            self.captureSession?.stopRunning()
+            self.captureSession = nil
+            self.previewLayer?.removeFromSuperlayer()
+            self.previewLayer = nil
+
+            // Remove the Cross button
+            if let crossButton = self.view.viewWithTag(999) {
+                crossButton.removeFromSuperview()
+            }
+        }
     }
 
     private func validateQRCode(_ qrData: String) {
@@ -126,6 +173,7 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
               let uid = qrJSON["uid"] as? String,
               let eventId = qrJSON["eventId"] as? String else {
             showAlert(title: "Error", message: "Invalid QR code.")
+            stopQRCodeScanner()
             return
         }
 
@@ -134,6 +182,7 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
         // Step 1: Verify the event ID belongs to the logged-in organizer
         guard let loggedInUserId = Auth.auth().currentUser?.uid else {
             showAlert(title: "Error", message: "User not logged in.")
+            stopQRCodeScanner()
             return
         }
 
@@ -141,17 +190,26 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
             guard let self = self else { return }
 
             if let error = error {
-                self.showAlert(title: "Error", message: error.localizedDescription)
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Error", message: error.localizedDescription)
+                    self.stopQRCodeScanner()
+                }
                 return
             }
 
             guard let eventData = document?.data(), let organizerId = eventData["userId"] as? String else {
-                self.showAlert(title: "Error", message: "Event not found.")
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Error", message: "Event not found.")
+                    self.stopQRCodeScanner()
+                }
                 return
             }
 
             if organizerId != loggedInUserId {
-                self.showAlert(title: "Error", message: "You are not authorized to scan this QR code.")
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Error", message: "You are not authorized to scan this QR code.")
+                    self.stopQRCodeScanner()
+                }
                 return
             }
 
@@ -162,25 +220,30 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
                 .getDocuments { [weak self] snapshot, error in
                     guard let self = self else { return }
 
+                    DispatchQueue.main.async {
+                        self.stopQRCodeScanner()
+                    }
+
                     if let error = error {
-                        self.showAlert(title: "Error", message: error.localizedDescription)
+                        DispatchQueue.main.async {
+                            self.showAlert(title: "Error", message: error.localizedDescription)
+                        }
                         return
                     }
 
                     if let document = snapshot?.documents.first {
-                        self.showAlert(title: "Success", message: "Registration validated successfully for user: \(uid).")
+                        DispatchQueue.main.async {
+                            self.showAlert(title: "Success", message: "Registration validated successfully for user: \(uid).")
+                        }
                     } else {
-                        self.showAlert(title: "Error", message: "No matching registration found.")
+                        DispatchQueue.main.async {
+                            self.showAlert(title: "Error", message: "No matching registration found.")
+                        }
                     }
                 }
         }
     }
 
-
-    private func stopQRCodeScanner() {
-        captureSession?.stopRunning()
-        previewLayer?.removeFromSuperlayer()
-    }
 
     private func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)

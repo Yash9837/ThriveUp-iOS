@@ -1,9 +1,3 @@
-//
-//  SplashViewController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 18/11/24.
-//
 import UIKit
 
 class SplashViewController: UIViewController {
@@ -75,14 +69,17 @@ class SplashViewController: UIViewController {
     
     // MARK: - Transition
     
+    // MARK: - Transition to Onboarding
+    // MARK: - Transition to Onboarding
+    // MARK: - Transition to Onboarding
     private func transitionToOnboarding() {
-        let onboardingPageViewController = OnboardingPageViewController(
-            transitionStyle: .scroll,
-            navigationOrientation: .horizontal,
-            options: nil
-        )
+        // Initialize the iOSOnboardingViewController (no need to initialize a new UIPageViewController)
+        let onboardingPageViewController = iOSOnboardingViewController()
+        
+        // Get the key window
         let window = UIApplication.shared.windows.first { $0.isKeyWindow }
         
+        // Transition to the onboarding page
         UIView.transition(with: window!,
                           duration: 0.5,
                           options: .transitionCrossDissolve,
@@ -90,6 +87,9 @@ class SplashViewController: UIViewController {
             window?.rootViewController = onboardingPageViewController
         }, completion: nil)
     }
+
+
+
 }
 
 // MARK: - UIColor Extension for Hex

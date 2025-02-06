@@ -1,4 +1,4 @@
-//
+/*//
 //  QuickAddCollectionViewCell.swift
 //  ThriveUp
 //
@@ -105,3 +105,4 @@ class QuickAddCollectionViewCell: UICollectionViewCell {
 }
 
 
+*/

@@ -224,18 +224,20 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
            header.titleLabel.text = categories[indexPath.section].name
            return header
        }
-       func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-              guard collectionView != categoryCollectionView else {
-                  // If the tapped collection view is the categoryCollectionView, ignore this action
-                  return
-              }
-              let selectedEvent = categories[indexPath.section].events[indexPath.item]
-              
-              // Instantiate EventDetailViewController
-              let eventDetailVC = EventDetailViewController()
-              // Pass the selected event data to the detail view controller
-              eventDetailVC.event = selectedEvent
-              // Push EventDetailViewController onto the navigation stack
-              navigationController?.pushViewController(eventDetailVC, animated: true)
-          }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard collectionView != categoryCollectionView else {
+            // If the tapped collection view is the categoryCollectionView, ignore this action
+            return
+        }
+        let selectedEvent = categories[indexPath.section].events[indexPath.item]
+        
+        // Instantiate EventContainerViewController
+        let eventContainerVC = EventContainerViewController()
+        // Pass the selected event data to the container view controller
+        eventContainerVC.event = selectedEvent
+        // Push EventContainerViewController onto the navigation stack
+        navigationController?.pushViewController(eventContainerVC, animated: true)
+    }
    }
