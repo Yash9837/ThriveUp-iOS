@@ -16,12 +16,15 @@ class SwipeViewController: UIViewController, CoachMarksControllerDataSource, Coa
     
     // CoachMarksController instance for the guided tour
     let coachMarksController = CoachMarksController()
+    let titleLabel = UILabel()
+    let titleStackView = UIStackView()
+    let filterButton = UIButton(type: .system)
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemGray6
         
-        setupNavigationBar()
+        setupTitleStackView()
         setupViews()
         setupConstraints()
         fetchEventsFromDatabase()
@@ -43,60 +46,36 @@ class SwipeViewController: UIViewController, CoachMarksControllerDataSource, Coa
         askForTutorial()
     }
 
-    private func setupNavigationBar() {
-        let logoImageView = UIImageView(image: UIImage(named: "thriveUpLogo"))
-        logoImageView.contentMode = .scaleAspectFit
-        logoImageView.translatesAutoresizingMaskIntoConstraints = false
-        let logoContainerView = UIView()
-        logoContainerView.addSubview(logoImageView)
-        
-        NSLayoutConstraint.activate([
-            logoImageView.widthAnchor.constraint(equalToConstant: 40),
-            logoImageView.heightAnchor.constraint(equalToConstant: 40),
-            logoImageView.leadingAnchor.constraint(equalTo: logoContainerView.leadingAnchor),
-            logoImageView.trailingAnchor.constraint(equalTo: logoContainerView.trailingAnchor),
-            logoImageView.topAnchor.constraint(equalTo: logoContainerView.topAnchor),
-            logoImageView.bottomAnchor.constraint(equalTo: logoContainerView.bottomAnchor)
-        ])
+    private func setupTitleStackView() {
+        // Configure titleLabel
+        titleLabel.text = "Swipe"
+        titleLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+        titleLabel.textAlignment = .left
 
-        let titleLabel = UILabel()
-        titleLabel.text = "ThriveUp"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
-        titleLabel.textColor = .black
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        let titleContainerView = UIView()
-        titleContainerView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: titleContainerView.leadingAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: titleContainerView.trailingAnchor),
-            titleLabel.topAnchor.constraint(equalTo: titleContainerView.topAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: titleContainerView.bottomAnchor)
-        ])
-        
-        let logoTitleStackView = UIStackView(arrangedSubviews: [logoImageView, titleLabel])
-        logoTitleStackView.axis = .horizontal
-        logoTitleStackView.spacing = 8
-        logoTitleStackView.alignment = .center
-        logoTitleStackView.translatesAutoresizingMaskIntoConstraints = false
-        let logoTitleContainerView = UIView()
-        logoTitleContainerView.addSubview(logoTitleStackView)
-        
-        NSLayoutConstraint.activate([
-            logoTitleStackView.centerXAnchor.constraint(equalTo: logoTitleContainerView.centerXAnchor),
-            logoTitleStackView.centerYAnchor.constraint(equalTo: logoTitleContainerView.centerYAnchor),
-            logoTitleStackView.leadingAnchor.constraint(equalTo: logoTitleContainerView.leadingAnchor),
-            logoTitleStackView.trailingAnchor.constraint(equalTo: logoTitleContainerView.trailingAnchor)
-        ])
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: logoTitleContainerView)
-
-        let filterButton = UIButton(type: .system)
+        // Configure filterButton
         filterButton.setImage(UIImage(systemName: "line.horizontal.3.decrease.circle"), for: .normal)
         filterButton.tintColor = .black
         filterButton.addTarget(self, action: #selector(handleFilterButtonTapped), for: .touchUpInside)
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: filterButton)
+
+        // Configure titleStackView
+        titleStackView.axis = .horizontal
+        titleStackView.alignment = .center
+        titleStackView.distribution = .equalSpacing
+        titleStackView.spacing = 8
+
+        // Add titleLabel and filterButton to titleStackView
+        titleStackView.addArrangedSubview(titleLabel)
+        titleStackView.addArrangedSubview(filterButton)
+
+        // Add titleStackView to the view
+        view.addSubview(titleStackView)
+        titleStackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            titleStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleStackView.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
 
     @objc private func handleFilterButtonTapped() {
@@ -125,7 +104,7 @@ class SwipeViewController: UIViewController, CoachMarksControllerDataSource, Coa
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            cardContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            cardContainerView.topAnchor.constraint(equalTo: titleStackView.bottomAnchor, constant: 8),
             cardContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             cardContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
             cardContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
@@ -362,9 +341,9 @@ class SwipeViewController: UIViewController, CoachMarksControllerDataSource, Coa
     func coachMarksController(_ coachMarksController: CoachMarksController, coachMarkAt index: Int) -> CoachMark {
         switch index {
         case 0:
-            return coachMarksController.helper.makeCoachMark(for: navigationItem.leftBarButtonItem?.customView)
+            return coachMarksController.helper.makeCoachMark(for: titleStackView)
         case 1:
-            return coachMarksController.helper.makeCoachMark(for: navigationItem.rightBarButtonItem?.customView)
+            return coachMarksController.helper.makeCoachMark(for: filterButton)
         case 2:
             return coachMarksController.helper.makeCoachMark(for: cardContainerView)
         default:
@@ -386,10 +365,10 @@ class SwipeViewController: UIViewController, CoachMarksControllerDataSource, Coa
         // Customize the coach views based on the index
         switch index {
         case 0:
-            coachViews.bodyView.hintLabel.text = "This is the logo and title."
+            coachViews.bodyView.hintLabel.text = "This is the Swipe screen and Edit Interests button."
             coachViews.bodyView.nextLabel.text = "Next"
         case 1:
-            coachViews.bodyView.hintLabel.text = "This is the Edit Interest button."
+            coachViews.bodyView.hintLabel.text = "This is the Edit Interests button."
             coachViews.bodyView.nextLabel.text = "Next"
         case 2:
             coachViews.bodyView.hintLabel.text = "Swipe left to dismiss and right to bookmark events."
@@ -486,140 +465,140 @@ class FlippableCardView: UIView, UITableViewDataSource, UITableViewDelegate {
             imageView.topAnchor.constraint(equalTo: frontView.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: frontView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: frontView.trailingAnchor),
-                        imageView.bottomAnchor.constraint(equalTo: frontView.bottomAnchor)
-                    ])
-                }
+            imageView.bottomAnchor.constraint(equalTo: frontView.bottomAnchor)
+        ])
+    }
 
-                private func setupBackView() {
-                    backView.backgroundColor = .clear
-                    backView.layer.cornerRadius = 20
-                    backView.layer.masksToBounds = true
+    private func setupBackView() {
+        backView.backgroundColor = .clear
+        backView.layer.cornerRadius = 20
+        backView.layer.masksToBounds = true
 
-                    gradientLayer.colors = [UIColor.systemOrange.cgColor, UIColor.systemRed.cgColor]
-                    gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-                    gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-                    gradientLayer.cornerRadius = 20
-                    backView.layer.insertSublayer(gradientLayer, at: 0)
+        gradientLayer.colors = [UIColor.systemOrange.cgColor, UIColor.systemRed.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.cornerRadius = 20
+        backView.layer.insertSublayer(gradientLayer, at: 0)
 
-                    let titleLabel = UILabel()
-                    titleLabel.text = event.title
-                    titleLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
-                    titleLabel.textColor = .white
-                    titleLabel.textAlignment = .center
-                    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        let titleLabel = UILabel()
+        titleLabel.text = event.title
+        titleLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        titleLabel.textColor = .white
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-                    let tableView = UITableView(frame: .zero, style: .grouped)
-                    tableView.backgroundColor = .clear
-                    tableView.layer.cornerRadius = 20
-                    tableView.translatesAutoresizingMaskIntoConstraints = false
-                    tableView.isScrollEnabled = false
-                    tableView.separatorStyle = .singleLine
-                    tableView.delegate = self
-                    tableView.dataSource = self
-                    tableView.register(DetailCell.self, forCellReuseIdentifier: "DetailCell")
+        let tableView = UITableView(frame: .zero, style: .grouped)
+        tableView.backgroundColor = .clear
+        tableView.layer.cornerRadius = 20
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.isScrollEnabled = false
+        tableView.separatorStyle = .singleLine
+        tableView.delegate = self
+        tableView.dataSource = self
+                tableView.register(DetailCell.self, forCellReuseIdentifier: "DetailCell")
 
-                    backView.addSubview(titleLabel)
-                    backView.addSubview(tableView)
+                backView.addSubview(titleLabel)
+                backView.addSubview(tableView)
 
-                    NSLayoutConstraint.activate([
-                        titleLabel.topAnchor.constraint(equalTo: backView.topAnchor, constant: 32),
-                        titleLabel.leadingAnchor.constraint(equalTo: backView.leadingAnchor, constant: 16),
-                        titleLabel.trailingAnchor.constraint(equalTo: backView.trailingAnchor, constant: -16),
+                NSLayoutConstraint.activate([
+                    titleLabel.topAnchor.constraint(equalTo: backView.topAnchor, constant: 32),
+                    titleLabel.leadingAnchor.constraint(equalTo: backView.leadingAnchor, constant: 16),
+                    titleLabel.trailingAnchor.constraint(equalTo: backView.trailingAnchor, constant: -16),
 
-                        tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-                        tableView.leadingAnchor.constraint(equalTo: backView.leadingAnchor, constant: 16),
-                        tableView.trailingAnchor.constraint(equalTo: backView.trailingAnchor, constant: -16),
-                        tableView.bottomAnchor.constraint(equalTo: backView.bottomAnchor, constant: -16)
-                    ])
-                }
+                    tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+                    tableView.leadingAnchor.constraint(equalTo: backView.leadingAnchor, constant: 16),
+                    tableView.trailingAnchor.constraint(equalTo: backView.trailingAnchor, constant: -16),
+                    tableView.bottomAnchor.constraint(equalTo: backView.bottomAnchor, constant: -16)
+                ])
+            }
 
-                @objc private func flipCard() {
-                    let fromView = isFlipped ? backView : frontView
-                    let toView = isFlipped ? frontView : backView
+            @objc private func flipCard() {
+                let fromView = isFlipped ? backView : frontView
+                let toView = isFlipped ? frontView : backView
 
-                    UIView.transition(from: fromView, to: toView, duration: 0.6, options: [.transitionFlipFromLeft, .showHideTransitionViews]) { [weak self] _ in
-                        self?.isFlipped.toggle()
-                    }
-                }
-
-                func numberOfSections(in tableView: UITableView) -> Int {
-                    return detailItems.count
-                }
-
-                func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-                    return 1
-                }
-
-                func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-                    guard let cell = tableView.dequeueReusableCell(withIdentifier: "DetailCell", for: indexPath) as? DetailCell else {
-                        return UITableViewCell()
-                    }
-
-                    let item = detailItems[indexPath.section]
-                    cell.configure(iconName: item.0, detail: item.1)
-
-                    return cell
-                }
-
-                func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-                    switch section {
-                    case 0:
-                        return "Date"
-                    case 1:
-                        return "Time"
-                    case 2:
-                        return "Location"
-                    case 3:
-                        return "Organizer"
-                    case 4:
-                        return "Description"
-                    default:
-                        return nil
-                    }
+                UIView.transition(from: fromView, to: toView, duration: 0.6, options: [.transitionFlipFromLeft, .showHideTransitionViews]) { [weak self] _ in
+                    self?.isFlipped.toggle()
                 }
             }
 
-            class DetailCell: UITableViewCell {
-                private let iconImageView = UIImageView()
-                private let detailLabel = UILabel()
+            func numberOfSections(in tableView: UITableView) -> Int {
+                return detailItems.count
+            }
 
-                override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-                    super.init(style: style, reuseIdentifier: reuseIdentifier)
-                    setupViews()
+            func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+                return 1
+            }
+
+            func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: "DetailCell", for: indexPath) as? DetailCell else {
+                    return UITableViewCell()
                 }
 
-                required init?(coder: NSCoder) {
-                    fatalError("init(coder:) has not been implemented")
-                }
+                let item = detailItems[indexPath.section]
+                cell.configure(iconName: item.0, detail: item.1)
 
-                private func setupViews() {
-                    backgroundColor = .clear
+                return cell
+            }
 
-                    iconImageView.tintColor = .white
-                    iconImageView.translatesAutoresizingMaskIntoConstraints = false
-                    addSubview(iconImageView)
-
-                    detailLabel.font = UIFont.preferredFont(forTextStyle: .body)
-                    detailLabel.textColor = .label
-                    detailLabel.numberOfLines = 0
-                    detailLabel.translatesAutoresizingMaskIntoConstraints = false
-                    addSubview(detailLabel)
-
-                    NSLayoutConstraint.activate([
-                        iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-                        iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-                        iconImageView.widthAnchor.constraint(equalToConstant: 24),
-                        iconImageView.heightAnchor.constraint(equalToConstant: 24),
-
-                        detailLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
-                        detailLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-                        detailLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-                        detailLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
-                    ])
-                }
-
-                func configure(iconName: String, detail: String) {
-                    iconImageView.image = UIImage(systemName: iconName)
-                    detailLabel.text = detail
+            func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+                switch section {
+                case 0:
+                    return "Date"
+                case 1:
+                    return "Time"
+                case 2:
+                    return "Location"
+                case 3:
+                    return "Organizer"
+                case 4:
+                    return "Description"
+                default:
+                    return nil
                 }
             }
+        }
+
+        class DetailCell: UITableViewCell {
+            private let iconImageView = UIImageView()
+            private let detailLabel = UILabel()
+
+            override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+                super.init(style: style, reuseIdentifier: reuseIdentifier)
+                setupViews()
+            }
+
+            required init?(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            private func setupViews() {
+                backgroundColor = .clear
+
+                iconImageView.tintColor = .white
+                iconImageView.translatesAutoresizingMaskIntoConstraints = false
+                addSubview(iconImageView)
+
+                detailLabel.font = UIFont.preferredFont(forTextStyle: .body)
+                detailLabel.textColor = .label
+                detailLabel.numberOfLines = 0
+                detailLabel.translatesAutoresizingMaskIntoConstraints = false
+                addSubview(detailLabel)
+
+                NSLayoutConstraint.activate([
+                    iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+                    iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+                    iconImageView.widthAnchor.constraint(equalToConstant: 24),
+                    iconImageView.heightAnchor.constraint(equalToConstant: 24),
+
+                    detailLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
+                    detailLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+                    detailLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+                    detailLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
+                ])
+            }
+
+            func configure(iconName: String, detail: String) {
+                iconImageView.image = UIImage(systemName: iconName)
+                detailLabel.text = detail
+            }
+        }

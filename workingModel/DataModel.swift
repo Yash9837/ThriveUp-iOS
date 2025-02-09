@@ -9,8 +9,6 @@ import Foundation
 import UIKit
 import FirebaseFirestore
 
-
-
 // FriendRequest model
 struct FriendRequest: Decodable {
     let id: String
@@ -18,15 +16,12 @@ struct FriendRequest: Decodable {
     let toUserID: String
 }
 
-
 // Friend model
 struct Friend: Decodable {
     let id: String
     let userID: String
     let friendID: String
 }
-
-
 
 struct NotificationItem {
     var id: String
@@ -46,7 +41,7 @@ struct Tags: Codable {
 }
 
 struct EventModel: Codable {
-    let eventId : String
+    let eventId: String
     let title: String
     let category: String
     let attendanceCount: Int
@@ -63,6 +58,7 @@ struct EventModel: Codable {
     var longitude: Double? // New property
     let tags: [String]
 }
+
 extension EventModel {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -115,10 +111,12 @@ func fetchEvents(completion: @escaping ([EventModel]?, Error?) -> Void) {
         completion(events, nil)
     }
 }
+
 struct CategoryModel {
     let name: String?
     var events: [EventModel]
 }
+
 struct FormField {
     let placeholder: String
     var value: String
@@ -182,9 +180,6 @@ struct User: Decodable {
     }
 }
 
-
-
-
 // ChatMessage model for individual messages
 struct ChatMessage {
     let id: String
@@ -202,7 +197,6 @@ struct ChatMessage {
     }
 }
 
-
 // ChatThread model to store a conversation
 struct ChatThread {
     let id: String
@@ -215,9 +209,6 @@ struct ChatThread {
         self.messages = messages
     }
 }
-
-// FriendRequest model with sample data for Quick Add and Added Me sections
-
 
 // ChatDataSource class to manage chat threads and messages
 class ChatDataSource {
@@ -279,12 +270,12 @@ class ChatDataSource {
     }
 }
 
-
 struct LoginCredentials {
     var userID: String
     var password: String
     var isUser: Bool // True if "User" is selected, false for "Host"
 }
+
 // Sample Data Source for Registrations
 struct Registration {
     let serialNumber: Int
@@ -306,6 +297,7 @@ struct RegistrationDataSource {
         // Add more registrations as needed
     ]
 }
+
 struct Event: Codable {
     let id: String
     let title: String
@@ -317,6 +309,14 @@ struct Event: Codable {
         return UIImage(named: imageName)
     }
 }
+
+struct UserDetails {
+    let name: String
+    let description: String
+    let contact: String
+    let imageUrl: String
+}
+
 struct EventDataSource {
     static let sampleEvents: [Event] = [
         Event(id: "1", title: "Samay Raina Comedy Show", description: "Laugh out loud with Samay Raina's witty comedy.", imageName: "SamayRaina", category: "Favourites"),
@@ -326,4 +326,3 @@ struct EventDataSource {
         Event(id: "5", title: "Musication The Band", description: "Experience live music with Musication.", imageName: "Musication", category: "Favourites")
     ]
 }
-

@@ -8,22 +8,17 @@ class FriendsService {
     
     // Fetch User Details using uid
     func fetchUserDetails(uid: String, completion: @escaping (User?, Error?) -> Void) {
-        print("Fetching user details for UID: \(uid)")
         db.collection("users").whereField("uid", isEqualTo: uid).getDocuments { snapshot, error in
             if let error = error {
-                print("Error fetching user details: \(error)")
                 completion(nil, error)
             } else if let snapshot = snapshot, !snapshot.isEmpty {
                 let userDocument = snapshot.documents.first
                 if let user = try? userDocument?.data(as: User.self) {
-                    print("Fetched user details: \(user)")
                     completion(user, nil)
                 } else {
-                    print("Failed to decode user details")
                     completion(nil, nil)
                 }
             } else {
-                print("No user document found for UID: \(uid)")
                 completion(nil, nil)
             }
         }
@@ -31,7 +26,6 @@ class FriendsService {
 
     // Send Friend Request
     func sendFriendRequest(fromUserID: String, toUserID: String, completion: @escaping (Bool, Error?) -> Void) {
-        print("Sending friend request from \(fromUserID) to \(toUserID)")
         let request = FriendRequest(id: UUID().uuidString, fromUserID: fromUserID, toUserID: toUserID)
         db.collection("friend_requests").document(request.id).setData([
             "id": request.id,
@@ -39,10 +33,8 @@ class FriendsService {
             "toUserID": request.toUserID
         ]) { error in
             if let error = error {
-                print("Error sending friend request: \(error)")
                 completion(false, error)
             } else {
-                print("Friend request sent successfully")
                 completion(true, nil)
             }
         }
@@ -50,10 +42,8 @@ class FriendsService {
 
     // Accept Friend Request
     func acceptFriendRequest(requestID: String, completion: @escaping (Bool, Error?) -> Void) {
-        print("Accepting friend request with ID: \(requestID)")
         db.collection("friend_requests").document(requestID).getDocument { [weak self] document, error in
             if let error = error {
-                print("Error fetching friend request: \(error)")
                 completion(false, error)
                 return
             }
@@ -61,55 +51,118 @@ class FriendsService {
             guard let data = document?.data(),
                   let fromUserID = data["fromUserID"] as? String,
                   let toUserID = data["toUserID"] as? String else {
-                print("Invalid friend request data")
                 completion(false, nil)
                 return
             }
             
-            let friend = Friend(id: UUID().uuidString, userID: fromUserID, friendID: toUserID)
-            self?.db.collection("friends").document(friend.id).setData([
-                "id": friend.id,
-                "userID": friend.userID,
-                "friendID": friend.friendID
-            ]) { error in
+            let friend1 = Friend(id: UUID().uuidString, userID: fromUserID, friendID: toUserID)
+            let friend2 = Friend(id: UUID().uuidString, userID: toUserID, friendID: fromUserID)
+            
+            let batch = self?.db.batch()
+            
+            let friend1Ref = self?.db.collection("friends").document(friend1.id)
+            batch?.setData([
+                "id": friend1.id,
+                "userID": friend1.userID,
+                "friendID": friend1.friendID
+            ], forDocument: friend1Ref!)
+            
+            let friend2Ref = self?.db.collection("friends").document(friend2.id)
+            batch?.setData([
+                "id": friend2.id,
+                "userID": friend2.userID,
+                "friendID": friend2.friendID
+            ], forDocument: friend2Ref!)
+            
+            let requestRef = self?.db.collection("friend_requests").document(requestID)
+            batch?.deleteDocument(requestRef!)
+            
+            batch?.commit { error in
                 if let error = error {
-                    print("Error adding friend: \(error)")
                     completion(false, error)
                 } else {
-                    self?.db.collection("friend_requests").document(requestID).delete { error in
-                        if let error = error {
-                            print("Error deleting friend request: \(error)")
-                            completion(false, error)
-                        } else {
-                            print("Friend request accepted and deleted successfully")
-                            completion(true, nil)
-                        }
-                    }
+                    completion(true, nil)
                 }
             }
         }
     }
 
     // Remove Friend
-    func removeFriend(friendID: String, completion: @escaping (Bool, Error?) -> Void) {
-        print("Removing friend with ID: \(friendID)")
-        db.collection("friends").document(friendID).delete { error in
+    func removeFriend(userID: String, friendID: String, completion: @escaping (Bool, Error?) -> Void) {
+        let userFriendRef = db.collection("friends").whereField("userID", isEqualTo: userID).whereField("friendID", isEqualTo: friendID)
+        let friendUserRef = db.collection("friends").whereField("userID", isEqualTo: friendID).whereField("friendID", isEqualTo: userID)
+        
+        let batch = db.batch()
+        
+        userFriendRef.getDocuments { snapshot, error in
             if let error = error {
-                print("Error removing friend: \(error)")
+                completion(false, error)
+                return
+            }
+            
+            snapshot?.documents.forEach { document in
+                batch.deleteDocument(document.reference)
+            }
+            
+            friendUserRef.getDocuments { snapshot, error in
+                if let error = error {
+                    completion(false, error)
+                    return
+                }
+                
+                snapshot?.documents.forEach { document in
+                    batch.deleteDocument(document.reference)
+                }
+                
+                batch.commit { error in
+                    if let error = error {
+                        completion(false, error)
+                    } else {
+                        completion(true, nil)
+                    }
+                }
+            }
+        }
+    }
+
+    // Remove Friend Request
+    func removeFriendRequest(requestID: String, completion: @escaping (Bool, Error?) -> Void) {
+        db.collection("friend_requests").document(requestID).delete { error in
+            if let error = error {
                 completion(false, error)
             } else {
-                print("Friend removed successfully")
                 completion(true, nil)
+            }
+        }
+    }
+    
+    // Unsend Friend Request
+    func unsendFriendRequest(fromUserID: String, toUserID: String, completion: @escaping (Bool, Error?) -> Void) {
+        db.collection("friend_requests").whereField("fromUserID", isEqualTo: fromUserID).whereField("toUserID", isEqualTo: toUserID).getDocuments { snapshot, error in
+            if let error = error {
+                completion(false, error)
+                return
+            }
+            
+            guard let document = snapshot?.documents.first else {
+                completion(false, nil)
+                return
+            }
+            
+            document.reference.delete { error in
+                if let error = error {
+                    completion(false, error)
+                } else {
+                    completion(true, nil)
+                }
             }
         }
     }
 
     // Fetch Friends
     func fetchFriends(forUserID userID: String, completion: @escaping ([Friend]?, Error?) -> Void) {
-        print("Fetching friends for user with ID: \(userID)")
         db.collection("friends").whereField("userID", isEqualTo: userID).getDocuments { snapshot, error in
             if let error = error {
-                print("Error fetching friends: \(error)")
                 completion(nil, error)
                 return
             }
@@ -117,17 +170,14 @@ class FriendsService {
             let friends = snapshot?.documents.compactMap { document -> Friend? in
                 try? document.data(as: Friend.self)
             }
-            print("Fetched friends: \(String(describing: friends))")
             completion(friends, nil)
         }
     }
 
     // Fetch Friend Requests
     func fetchFriendRequests(forUserID userID: String, completion: @escaping ([FriendRequest]?, Error?) -> Void) {
-        print("Fetching friend requests for user with ID: \(userID)")
         db.collection("friend_requests").whereField("toUserID", isEqualTo: userID).getDocuments { snapshot, error in
             if let error = error {
-                print("Error fetching friend requests: \(error)")
                 completion(nil, error)
                 return
             }
@@ -135,17 +185,14 @@ class FriendsService {
             let requests = snapshot?.documents.compactMap { document -> FriendRequest? in
                 try? document.data(as: FriendRequest.self)
             }
-            print("Fetched friend requests: \(String(describing: requests))")
             completion(requests, nil)
         }
     }
 
     // Fetch All Users
     func fetchAllUsers(completion: @escaping ([User]?, Error?) -> Void) {
-        print("Fetching all users")
         db.collection("users").getDocuments { snapshot, error in
             if let error = error {
-                print("Error fetching all users: \(error)")
                 completion(nil, error)
                 return
             }
@@ -153,34 +200,39 @@ class FriendsService {
             let users = snapshot?.documents.compactMap { document -> User? in
                 try? document.data(as: User.self)
             }
-            print("Fetched all users: \(String(describing: users))")
             completion(users, nil)
         }
     }
 
-    // Fetch Users Excluding Friends
-    func fetchUsersExcludingFriends(currentUserID: String, completion: @escaping ([User]?, Error?) -> Void) {
-        print("Fetching users excluding friends of user with ID: \(currentUserID)")
+    // Fetch Users Excluding Friends and Pending Requests
+    func fetchUsersExcludingFriendsAndRequests(currentUserID: String, completion: @escaping ([User]?, Error?) -> Void) {
         fetchFriends(forUserID: currentUserID) { [weak self] friends, error in
             if let error = error {
-                print("Error fetching friends: \(error)")
                 completion(nil, error)
                 return
             }
             
             let friendIDs = friends?.map { $0.friendID } ?? []
-            print("Fetched friends: \(friendIDs)")
             
-            self?.fetchAllUsers { users, error in
+            self?.fetchFriendRequests(forUserID: currentUserID) { requests, error in
                 if let error = error {
-                    print("Error fetching all users: \(error)")
                     completion(nil, error)
                     return
                 }
                 
-                let filteredUsers = users?.filter { !friendIDs.contains($0.id) && $0.id != currentUserID }
-                print("Filtered users excluding friends: \(String(describing: filteredUsers))")
-                completion(filteredUsers, nil)
+                let pendingRequestIDs = requests?.map { $0.fromUserID } ?? []
+                
+                self?.fetchAllUsers { users, error in
+                    if let error = error {
+                        completion(nil, error)
+                        return
+                    }
+                    
+                    let filteredUsers = users?.filter { user in
+                        !friendIDs.contains(user.id) && !pendingRequestIDs.contains(user.id) && user.id != currentUserID
+                    }
+                    completion(filteredUsers, nil)
+                }
             }
         }
     }

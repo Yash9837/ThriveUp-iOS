@@ -1,10 +1,3 @@
-//
-//  ProfileViewController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 16/11/24.
-//
-//
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -23,7 +16,7 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         imageView.image = UIImage(named: "default_profile")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 40
+        imageView.layer.cornerRadius = 50
         imageView.layer.borderWidth = 2
         imageView.layer.borderColor = UIColor.white.cgColor
         return imageView
@@ -45,29 +38,11 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         return label
     }()
 
-    private let contactDetailsLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Contact: Not Available"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private let descriptionLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Description: Not Available"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .darkGray
-        label.numberOfLines = 0
-        return label
-    }()
-
     private let friendsLabel: UILabel = {
         let label = UILabel()
         label.text = "Friends: 0"
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .gray
+        label.font = UIFont.systemFont(ofSize: 18)
+        label.textColor = .darkGray
         return label
     }()
 
@@ -85,6 +60,24 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         stackView.distribution = .fill
         stackView.spacing = 12
         return stackView
+    }()
+
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Description: Not Available"
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .darkGray
+        label.numberOfLines = 0
+        return label
+    }()
+
+    private let contactDetailsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Contact: Not Available"
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.textColor = .gray
+        label.numberOfLines = 0
+        return label
     }()
 
     private let interestsView: UIView = {
@@ -115,16 +108,33 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         tableView.isHidden = true
         return tableView
     }()
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Profile"
+        label.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+        label.textAlignment = .left
+        return label
+    }()
+
+    private let titleStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 8
+        return stackView
+    }()
+
     // MARK: - Configure Navigation Bar
     private func configureNavigationBar() {
-           navigationItem.title = "Profile"
+        let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
+        let editButton = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(handleEdit))
 
-           let logoutButton = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
-           let editButton = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(handleEdit))
+        navigationItem.rightBarButtonItem = logoutButton
+        navigationItem.leftBarButtonItem = editButton
+    }
 
-           navigationItem.rightBarButtonItem = logoutButton
-           navigationItem.leftBarButtonItem = editButton
-       }
     @objc private func handleEdit() {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("User not authenticated.")
@@ -161,79 +171,81 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     private func updateProfile(with details: UserDetails) {
-            guard let userId = Auth.auth().currentUser?.uid else { return }
+        guard let userId = Auth.auth().currentUser?.uid else { return }
 
-            let data: [String: Any] = [
-                "name": details.name,
-                "Description": details.description,
-                "ContactDetails": details.contact,
-                "profileImageURL": details.imageUrl
-            ]
+        let data: [String: Any] = [
+            "name": details.name,
+            "Description": details.description,
+            "ContactDetails": details.contact,
+            "profileImageURL": details.imageUrl
+        ]
 
-            db.collection("users").document(userId).updateData(data) { error in
-                if let error = error {
-                    print("Error updating profile: \(error.localizedDescription)")
+        db.collection("users").document(userId).updateData(data) { error in
+            if let error = error {
+                print("Error updating profile: \(error.localizedDescription)")
+            } else {
+                self.nameLabel.text = details.name
+                self.descriptionLabel.text = "Description: \(details.description)"
+                self.contactDetailsLabel.text = "Contact: \(details.contact)"
+
+                if let url = URL(string: details.imageUrl) {
+                    self.loadProfileImage(from: url)
                 } else {
-                    self.nameLabel.text = details.name
-                    self.descriptionLabel.text = "Description: \(details.description)"
-                    self.contactDetailsLabel.text = "Contact: \(details.contact)"
-
-                    if let url = URL(string: details.imageUrl) {
-                        self.loadProfileImage(from: url)
-                    } else {
-                        print("Invalid image URL: \(details.imageUrl)")
-                    }
+                    print("Invalid image URL: \(details.imageUrl)")
                 }
             }
         }
-        private func presentImagePicker() {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .photoLibrary
-            imagePicker.allowsEditing = true
+    }
 
-            present(imagePicker, animated: true)
-        }
+    private func presentImagePicker() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.allowsEditing = true
 
-        // MARK: - Image Picker Delegate
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            picker.dismiss(animated: true)
+        present(imagePicker, animated: true)
+    }
 
-            guard
-                let editedImage = info[.editedImage] as? UIImage,
-                let userId = Auth.auth().currentUser?.uid
-            else { return }
+    // MARK: - Image Picker Delegate
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+        picker.dismiss(animated: true)
 
-            uploadProfileImage(editedImage, for: userId) { imageURL in
-                self.db.collection("users").document(userId).updateData(["profileImageURL": imageURL]) { error in
-                    if let error = error {
-                        print("Error updating image URL: \(error.localizedDescription)")
-                    } else {
-                        self.profileImageView.image = editedImage
-                    }
-                }
-            }
-        }
+        guard
+            let editedImage = info[.editedImage] as? UIImage,
+            let userId = Auth.auth().currentUser?.uid
+        else { return }
 
-        private func uploadProfileImage(_ image: UIImage, for userId: String, completion: @escaping (String) -> Void) {
-            guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-
-            let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
-            storageRef.putData(imageData, metadata: nil) { _, error in
+        uploadProfileImage(editedImage, for: userId) { imageURL in
+            self.db.collection("users").document(userId).updateData(["profileImageURL": imageURL]) { error in
                 if let error = error {
-                    print("Error uploading image: \(error.localizedDescription)")
-                    return
-                }
-
-                storageRef.downloadURL { url, error in
-                    if let error = error {
-                        print("Error getting download URL: \(error.localizedDescription)")
-                    } else if let url = url {
-                        completion(url.absoluteString)
-                    }
+                    print("Error updating image URL: \(error.localizedDescription)")
+                } else {
+                    self.profileImageView.image = editedImage
                 }
             }
         }
+    }
+
+    private func uploadProfileImage(_ image: UIImage, for userId: String, completion: @escaping (String) -> Void) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+
+        let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
+        storageRef.putData(imageData, metadata: nil) { _, error in
+            if let error = error {
+                print("Error uploading image: \(error.localizedDescription)")
+                return
+            }
+
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    print("Error getting download URL: \(error.localizedDescription)")
+                } else if let url = url {
+                    completion(url.absoluteString)
+                }
+            }
+        }
+    }
+
     @objc private func handleLogout() {
         let userTabBarController = GeneralTabbarController()
 
@@ -244,141 +256,172 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     // MARK: - UI Setup
-    // MARK: - Lifecycle
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            configureNavigationBar()
-            setupUI()
-            setupConstraints()
-            loadUserDetails()
-            loadUserInterests()
-            loadRegisteredEvents()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureNavigationBar()
+        setupUI()
+        setupConstraints()
+        loadUserDetails()
+        loadUserInterests()
+        loadRegisteredEvents()
+    }
+
+    // MARK: - UI Setup
+    private func setupUI() {
+        view.backgroundColor = .white
+
+        view.addSubview(titleStackView)
+        titleStackView.addArrangedSubview(titleLabel)
+
+        view.addSubview(profileImageView)
+        view.addSubview(nameLabel)
+        view.addSubview(emailLabel)
+        view.addSubview(friendsLabel)
+        view.addSubview(segmentControl)
+        view.addSubview(detailsStackView)
+        view.addSubview(eventsTableView)
+
+        detailsStackView.addArrangedSubview(descriptionLabel)
+        detailsStackView.addArrangedSubview(contactDetailsLabel)
+        detailsStackView.addArrangedSubview(interestsView)
+
+        interestsView.addSubview(interestsLabel)
+        interestsView.addSubview(interestsGridView)
+
+        eventsTableView.dataSource = self
+        eventsTableView.delegate = self
+
+        // Add long-press gesture to show interests in a pop-up
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showInterestsPopup))
+        interestsView.addGestureRecognizer(longPressGesture)
+    }
+
+    private func setupConstraints() {
+        titleStackView.translatesAutoresizingMaskIntoConstraints = false
+        profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        emailLabel.translatesAutoresizingMaskIntoConstraints = false
+        friendsLabel.translatesAutoresizingMaskIntoConstraints = false
+        segmentControl.translatesAutoresizingMaskIntoConstraints = false
+        detailsStackView.translatesAutoresizingMaskIntoConstraints = false
+        interestsView.translatesAutoresizingMaskIntoConstraints = false
+        interestsLabel.translatesAutoresizingMaskIntoConstraints = false
+        interestsGridView.translatesAutoresizingMaskIntoConstraints = false
+        eventsTableView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            titleStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            titleStackView.heightAnchor.constraint(equalToConstant: 40),
+
+            profileImageView.topAnchor.constraint(equalTo: titleStackView.bottomAnchor, constant: 16),
+            profileImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            profileImageView.widthAnchor.constraint(equalToConstant: 100),
+            profileImageView.heightAnchor.constraint(equalToConstant: 100),
+
+            nameLabel.topAnchor.constraint(equalTo: profileImageView.topAnchor, constant: 10),
+            nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
+            nameLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            emailLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            emailLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+
+            friendsLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 4),
+            friendsLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            friendsLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+
+            segmentControl.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 16),
+            segmentControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            segmentControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            detailsStackView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 20),
+            detailsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            detailsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            interestsLabel.topAnchor.constraint(equalTo: interestsView.topAnchor),
+            interestsLabel.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
+
+            interestsGridView.topAnchor.constraint(equalTo: interestsLabel.bottomAnchor, constant: 8),
+            interestsGridView.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
+            interestsGridView.trailingAnchor.constraint(equalTo: interestsView.trailingAnchor),
+            interestsGridView.bottomAnchor.constraint(equalTo: interestsView.bottomAnchor),
+
+            eventsTableView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 16),
+            eventsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            eventsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            eventsTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    @objc private func showInterestsPopup() {
+        let interestsVC = InterestsPopupViewController()
+        interestsVC.interests = userInterests
+        interestsVC.modalPresentationStyle = .popover
+        interestsVC.preferredContentSize = CGSize(width: 300, height: 400)
+
+        if let popoverPresentationController = interestsVC.popoverPresentationController {
+            popoverPresentationController.sourceView = interestsView
+            popoverPresentationController.sourceRect = interestsView.bounds
+            popoverPresentationController.permittedArrowDirections = .any
         }
 
-        // MARK: - UI Setup
-        private func setupUI() {
-            view.backgroundColor = .white
-            view.addSubview(profileImageView)
-            view.addSubview(nameLabel)
-            view.addSubview(emailLabel)
-           
-            view.addSubview(segmentControl)
-            view.addSubview(detailsStackView)
-            view.addSubview(eventsTableView)
-            detailsStackView.addArrangedSubview(descriptionLabel)
-            detailsStackView.addArrangedSubview(friendsLabel)
-            detailsStackView.addArrangedSubview(contactDetailsLabel)
-            detailsStackView.addArrangedSubview(interestsView)
-            
-            interestsView.addSubview(interestsLabel)
-            interestsView.addSubview(interestsGridView)
+        present(interestsVC, animated: true, completion: nil)
+    }
 
-            eventsTableView.dataSource = self
-            eventsTableView.delegate = self
-        }
-
-        private func setupConstraints() {
-            profileImageView.translatesAutoresizingMaskIntoConstraints = false
-            nameLabel.translatesAutoresizingMaskIntoConstraints = false
-            emailLabel.translatesAutoresizingMaskIntoConstraints = false
-            contactDetailsLabel.translatesAutoresizingMaskIntoConstraints = false
-            descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-            friendsLabel.translatesAutoresizingMaskIntoConstraints = false
-            segmentControl.translatesAutoresizingMaskIntoConstraints = false
-            detailsStackView.translatesAutoresizingMaskIntoConstraints = false
-            interestsView.translatesAutoresizingMaskIntoConstraints = false
-            interestsLabel.translatesAutoresizingMaskIntoConstraints = false
-            interestsGridView.translatesAutoresizingMaskIntoConstraints = false
-            eventsTableView.translatesAutoresizingMaskIntoConstraints = false
-
-            NSLayoutConstraint.activate([
-                profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-                profileImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-                profileImageView.widthAnchor.constraint(equalToConstant: 80),
-                profileImageView.heightAnchor.constraint(equalToConstant: 80),
-
-                nameLabel.topAnchor.constraint(equalTo: profileImageView.topAnchor, constant: 10),
-                nameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
-                nameLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-                emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
-                emailLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-                emailLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-
-                segmentControl.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 16),
-                segmentControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-                segmentControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-                detailsStackView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 20),
-                detailsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-                detailsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-                interestsLabel.topAnchor.constraint(equalTo: interestsView.topAnchor),
-                interestsLabel.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
-
-                interestsGridView.topAnchor.constraint(equalTo: interestsLabel.bottomAnchor, constant: 8),
-                interestsGridView.leadingAnchor.constraint(equalTo: interestsView.leadingAnchor),
-                interestsGridView.trailingAnchor.constraint(equalTo: interestsView.trailingAnchor),
-                interestsGridView.bottomAnchor.constraint(equalTo: interestsView.bottomAnchor),
-
-                eventsTableView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 16),
-                eventsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                eventsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                eventsTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
-        }
     // MARK: - Load Interests
-       private func loadUserInterests() {
-           guard let userId = Auth.auth().currentUser?.uid else {
-               print("User not authenticated.")
-               return
-           }
+    private func loadUserInterests() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User not authenticated.")
+            return
+        }
 
-           db.collection("Interest").document(userId).getDocument { [weak self] document, error in
-               guard let self = self else { return }
+        db.collection("Interest").document(userId).getDocument { [weak self] document, error in
+            guard let self = self else { return }
 
-               if let error = error {
-                   print("Error fetching user interests: \(error.localizedDescription)")
-                   return
-               }
+            if let error = error {
+                print("Error fetching user interests: \(error.localizedDescription)")
+                return
+            }
 
-               guard let data = document?.data(), let interests = data["interests"] as? [String] else {
-                   print("No interests data found.")
-                   return
-               }
+            guard let data = document?.data(), let interests = data["interests"] as? [String] else {
+                print("No interests data found.")
+                return
+            }
 
-               self.userInterests = interests
-               self.updateInterestsUI()
-           }
-       }
+            self.userInterests = interests
+            self.updateInterestsUI()
+        }
+    }
 
-       private func updateInterestsUI() {
-           interestsGridView.arrangedSubviews.forEach { $0.removeFromSuperview() } // Clear existing views
+    private func updateInterestsUI() {
+        interestsGridView.arrangedSubviews.forEach { $0.removeFromSuperview() } // Clear existing views
 
-           let columns = 2
-           var currentRowStack: UIStackView?
+        let columns = 2
+        var currentRowStack: UIStackView?
 
-           for (index, interest) in userInterests.enumerated() {
-               if index % columns == 0 {
-                   currentRowStack = UIStackView()
-                   currentRowStack?.axis = .horizontal
-                   currentRowStack?.spacing = 12
-                   currentRowStack?.distribution = .fillEqually
-                   interestsGridView.addArrangedSubview(currentRowStack!)
-               }
+        for (index, interest) in userInterests.enumerated() {
+            if index % columns == 0 {
+                currentRowStack = UIStackView()
+                currentRowStack?.axis = .horizontal
+                currentRowStack?.spacing = 12
+                currentRowStack?.distribution = .fillEqually
+                interestsGridView.addArrangedSubview(currentRowStack!)
+            }
 
-               let button = UIButton(type: .system)
-               button.setTitle(interest, for: .normal)
-               button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-               button.backgroundColor = UIColor.systemGray5
-               button.layer.cornerRadius = 8
-               button.clipsToBounds = true
+            let button = UIButton(type: .system)
+            button.setTitle(interest, for: .normal)
+            button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+            button.backgroundColor = UIColor.systemGray5
+            button.layer.cornerRadius = 8
+            button.clipsToBounds = true
 
-               currentRowStack?.addArrangedSubview(button)
-           }
+            currentRowStack?.addArrangedSubview(button)
+        }
 
-           interestsView.isHidden = false
-       }
+        interestsView.isHidden = false
+    }
 
     // MARK: - Load User Details
     private func loadUserDetails() {
@@ -400,7 +443,7 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
             self?.nameLabel.text = data["name"] as? String ?? "Name"
             self?.emailLabel.text = data["email"] as? String ?? "Email"
             self?.contactDetailsLabel.text = "Contact: \(data["ContactDetails"] as? String ?? "Not Available")"
-            self?.descriptionLabel.text = data["Description"] as? String ?? "No Description Available"
+            self?.descriptionLabel.text = "Description: \(data["Description"] as? String ?? "No Description Available")"
             self?.friendsLabel.text = "Friends: \(data["friends"] as? String ?? "0")"
 
             if let profileImageURLString = data["profileImageURL"] as? String,
@@ -436,8 +479,6 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
         task.resume()
     }
 
-
-
     private func loadRegisteredEvents() {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("User not authenticated.")
@@ -462,199 +503,254 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     private func fetchEvents(for eventIds: [String]) {
-        let group = DispatchGroup()
-        registeredEvents.removeAll()
+            let group = DispatchGroup()
+            registeredEvents.removeAll()
 
-        for eventId in eventIds {
-            group.enter()
-            db.collection("events").document(eventId).getDocument { [weak self] document, error in
-                defer { group.leave() }
+            for eventId in eventIds {
+                group.enter()
+                db.collection("events").document(eventId).getDocument { [weak self] document, error in
+                    defer { group.leave() }
 
-                if let error = error {
-                    print("Error fetching event details for \(eventId): \(error.localizedDescription)")
-                    return
-               
+                    if let error = error {
+                        print("Error fetching event details for \(eventId): \(error.localizedDescription)")
+                        return
+                    }
+
+                    guard let data = document?.data(), let self = self else {
+                        print("No data found for eventId: \(eventId)")
+                        return
+                    }
+
+                    let imageNameOrUrl = data["imageName"] as? String ?? ""
+                    let isImageUrl = URL(string: imageNameOrUrl)?.scheme != nil
+
+                    let event = EventModel(
+                        eventId: eventId,
+                        title: data["title"] as? String ?? "Untitled",
+                        category: data["category"] as? String ?? "Uncategorized",
+                        attendanceCount: data["attendanceCount"] as? Int ?? 0,
+                        organizerName: data["organizerName"] as? String ?? "Unknown",
+                        date: data["date"] as? String ?? "Unknown Date",
+                        time: data["time"] as? String ?? "Unknown Time",
+                        location: data["location"] as? String ?? "Unknown Location",
+                        locationDetails: data["locationDetails"] as? String ?? "",
+                        imageName: isImageUrl ? imageNameOrUrl : "",
+                        speakers: [],
+                        userId : data["userId"] as? String ?? "",
+                        description: data["description"] as? String ?? "",
+                        latitude: data["latitude"] as? Double,
+                        longitude: data["longitude"] as? Double,
+                        tags: []
+                    )
+                    self.registeredEvents.append(event)
                 }
+            }
 
-                guard let data = document?.data(), let self = self else {
-                    print("No data found for eventId: \(eventId)")
-                    return
-                }
-
-                let imageNameOrUrl = data["imageName"] as? String ?? ""
-                let isImageUrl = URL(string: imageNameOrUrl)?.scheme != nil
-
-                let event = EventModel(
-                    eventId: eventId,
-                    title: data["title"] as? String ?? "Untitled",
-                    category: data["category"] as? String ?? "Uncategorized",
-                    attendanceCount: data["attendanceCount"] as? Int ?? 0,
-                    organizerName: data["organizerName"] as? String ?? "Unknown",
-                    date: data["date"] as? String ?? "Unknown Date",
-                    time: data["time"] as? String ?? "Unknown Time",
-                    location: data["location"] as? String ?? "Unknown Location",
-                    locationDetails: data["locationDetails"] as? String ?? "",
-                    imageName: isImageUrl ? imageNameOrUrl : "",
-                    speakers: [],
-                    userId : data["userId"] as? String ?? "",
-                    description: data["description"] as? String ?? "",
-                   
-                    latitude: data["latitude"] as? Double,
-                    longitude: data["longitude"] as? Double,
-                    tags: []
-                )
-                self.registeredEvents.append(event)
+            group.notify(queue: .main) {
+                self.eventsTableView.reloadData()
             }
         }
 
-        group.notify(queue: .main) {
-            self.eventsTableView.reloadData()
+        // MARK: - Unregister Event
+        func didTapUnregister(event: EventModel) {
+            let alert = UIAlertController(
+                title: "Unregister",
+                message: "Are you sure you want to unregister from \(event.title)?",
+                preferredStyle: .alert
+            )
+
+            alert.addAction(UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
+                self.unregisterEvent(event)
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+
+            present(alert, animated: true)
         }
-    }
 
-    // MARK: - Unregister Event
-    func didTapUnregister(event: EventModel) {
-        let alert = UIAlertController(
-            title: "Unregister",
-            message: "Are you sure you want to unregister from \(event.title)?",
-            preferredStyle: .alert
-        )
+        private func unregisterEvent(_ event: EventModel) {
+            guard let userId = Auth.auth().currentUser?.uid else { return }
 
-        alert.addAction(UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
-            self.unregisterEvent(event)
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            db.collection("registrations")
+                .whereField("uid", isEqualTo: userId)
+                .whereField("eventId", isEqualTo: event.eventId)
+                .getDocuments { [weak self] snapshot, error in
+                    guard let self = self else { return }
 
-        present(alert, animated: true)
-    }
-
-    private func unregisterEvent(_ event: EventModel) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-
-        db.collection("registrations")
-            .whereField("uid", isEqualTo: userId)
-            .whereField("eventId", isEqualTo: event.eventId)
-            .getDocuments { [weak self] snapshot, error in
-                guard let self = self else { return }
-
-                if let error = error {
-                    print("Error fetching registration for unregistration: \(error.localizedDescription)")
-                    return
-                }
-
-                guard let document = snapshot?.documents.first else {
-                    print("No registration found for event \(event.eventId)")
-                    return
-                }
-
-                document.reference.delete { error in
                     if let error = error {
-                        print("Error deleting registration: \(error.localizedDescription)")
-                    } else {
-                        print("Successfully unregistered from event \(event.eventId)")
-                        self.registeredEvents.removeAll { $0.eventId == event.eventId }
-                        DispatchQueue.main.async {
-                            self.eventsTableView.reloadData()
+                        print("Error fetching registration for unregistration: \(error.localizedDescription)")
+                        return
+                    }
+
+                    guard let document = snapshot?.documents.first else {
+                        print("No registration found for event \(event.eventId)")
+                        return
+                    }
+
+                    document.reference.delete { error in
+                        if let error = error {
+                            print("Error deleting registration: \(error.localizedDescription)")
+                        } else {
+                            print("Successfully unregistered from event \(event.eventId)")
+                            self.registeredEvents.removeAll { $0.eventId == event.eventId }
+                            DispatchQueue.main.async {
+                                self.eventsTableView.reloadData()
+                            }
                         }
                     }
                 }
+        }
+
+        // MARK: - UITableView DataSource & Delegate
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            return registeredEvents.count
+        }
+
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = tableView.dequeueReusableCell(withIdentifier: RegisteredEventCell.identifier, for: indexPath) as! RegisteredEventCell
+            cell.configure(with: registeredEvents[indexPath.row])
+            cell.delegate = self
+            return cell
+        }
+
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let ticketVC = TicketViewController()
+            ticketVC.eventId = registeredEvents[indexPath.row].eventId
+            navigationController?.pushViewController(ticketVC, animated: true)
+        }
+
+        // MARK: - Segment Control Action
+        @objc private func segmentChanged() {
+            let isShowingEvents = segmentControl.selectedSegmentIndex == 1
+            detailsStackView.isHidden = isShowingEvents
+            eventsTableView.isHidden = !isShowingEvents
+            if isShowingEvents {
+                loadRegisteredEvents()
             }
+        }
     }
 
-    // MARK: - UITableView DataSource & Delegate
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return registeredEvents.count
+    // MARK: - InterestsPopupViewController
+    class InterestsPopupViewController: UIViewController {
+        var interests: [String] = []
+
+        private let interestsLabel: UILabel = {
+            let label = UILabel()
+            label.text = "Interests"
+            label.font = UIFont.boldSystemFont(ofSize: 24)
+            label.textAlignment = .center
+            return label
+        }()
+
+        private let interestsStackView: UIStackView = {
+            let stackView = UIStackView()
+            stackView.axis = .vertical
+            stackView.spacing = 12
+            stackView.alignment = .center
+            return stackView
+        }()
+
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            setupUI()
+        }
+
+        private func setupUI() {
+            view.backgroundColor = .white
+            view.layer.cornerRadius = 12
+            view.clipsToBounds = true
+
+            view.addSubview(interestsLabel)
+            view.addSubview(interestsStackView)
+
+            interestsLabel.translatesAutoresizingMaskIntoConstraints = false
+            interestsStackView.translatesAutoresizingMaskIntoConstraints = false
+
+            NSLayoutConstraint.activate([
+                interestsLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 16),
+                interestsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+                interestsStackView.topAnchor.constraint(equalTo: interestsLabel.bottomAnchor, constant: 16),
+                interestsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                interestsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                interestsStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
+            ])
+
+            for interest in interests {
+                let interestLabel = UILabel()
+                interestLabel.text = interest
+                interestLabel.font = UIFont.systemFont(ofSize: 18)
+                interestLabel.textAlignment = .center
+                interestLabel.backgroundColor = UIColor.systemGray5
+                interestLabel.layer.cornerRadius = 8
+                interestLabel.clipsToBounds = true
+                interestLabel.widthAnchor.constraint(equalTo: interestsStackView.widthAnchor, multiplier: 0.9).isActive = true
+
+                interestsStackView.addArrangedSubview(interestLabel)
+            }
+        }
     }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: RegisteredEventCell.identifier, for: indexPath) as! RegisteredEventCell
-        cell.configure(with: registeredEvents[indexPath.row])
-        cell.delegate = self
-        return cell
-    }
-
- 
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let ticketVC = TicketViewController()
-        ticketVC.eventId = registeredEvents[indexPath.row].eventId
-        navigationController?.pushViewController(ticketVC, animated: true)
-    }
-
-
-    // MARK: - Segment Control Action
-    @objc private func segmentChanged() {
-           let isShowingEvents = segmentControl.selectedSegmentIndex == 1
-           detailsStackView.isHidden = isShowingEvents
-           eventsTableView.isHidden = !isShowingEvents
-           if isShowingEvents {
-               loadRegisteredEvents()
-           }
-       }
-}
 
 class EditProfileViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     var name: String?
-       var descriptionText: String?
-       var contact: String?
-       var imageUrl: String?
-       var onSave: ((UserDetails) -> Void)?
+    var descriptionText: String?
+    var contact: String?
+    var imageUrl: String?
+    var onSave: ((UserDetails) -> Void)?
 
-       private let profileImageView: UIImageView = {
-           let imageView = UIImageView()
-           imageView.contentMode = .scaleAspectFill
-           imageView.clipsToBounds = true
-           imageView.layer.cornerRadius = 50
-           imageView.layer.borderWidth = 1
-           imageView.layer.borderColor = UIColor.lightGray.cgColor
-           return imageView
-       }()
+    private let profileImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 50
+        imageView.layer.borderWidth = 1
+        imageView.layer.borderColor = UIColor.lightGray.cgColor
+        return imageView
+    }()
 
-       private let selectImageButton: UIButton = {
-           let button = UIButton(type: .system)
-           button.setTitle("Select Image", for: .normal)
-           button.addTarget(self, action: #selector(handleSelectImage), for: .touchUpInside)
-           return button
-       }()
+    private let selectImageButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Select Image", for: .normal)
+        button.addTarget(self, action: #selector(handleSelectImage), for: .touchUpInside)
+        return button
+    }()
 
-       private let nameTextField: UITextField = {
-           let textField = UITextField()
-           textField.borderStyle = .roundedRect
-           textField.layer.borderWidth = 1
-           textField.layer.borderColor = UIColor.lightGray.cgColor
-           textField.placeholder = "Enter name"
-           return textField
-       }()
+    private let nameTextField: UITextField = {
+        let textField = UITextField()
+        textField.borderStyle = .roundedRect
+        textField.layer.borderWidth = 1
+        textField.layer.borderColor = UIColor.lightGray.cgColor
+        textField.placeholder = "Enter name"
+        return textField
+    }()
 
-       private let descriptionTextView: UITextView = {
-           let textView = UITextView()
-           textView.layer.borderWidth = 1
-           textView.layer.borderColor = UIColor.lightGray.cgColor
-           textView.layer.cornerRadius = 8
-           textView.font = UIFont.systemFont(ofSize: 16)
-           return textView
-       }()
+    private let descriptionTextView: UITextView = {
+        let textView = UITextView()
+        textView.layer.borderWidth = 1
+        textView.layer.borderColor = UIColor.lightGray.cgColor
+        textView.layer.cornerRadius = 8
+        textView.font = UIFont.systemFont(ofSize: 16)
+        return textView
+    }()
 
-       private let contactTextField: UITextField = {
-           let textField = UITextField()
-           textField.borderStyle = .roundedRect
-           textField.layer.borderWidth = 1
-           textField.layer.borderColor = UIColor.lightGray.cgColor
-           textField.placeholder = "Enter contact"
-           return textField
-       }()
+    private let contactTextField: UITextField = {
+        let textField = UITextField()
+        textField.borderStyle = .roundedRect
+        textField.layer.borderWidth = 1
+        textField.layer.borderColor = UIColor.lightGray.cgColor
+        textField.placeholder = "Enter contact"
+        return textField
+    }()
 
-       private let saveButton: UIButton = {
-           let button = UIButton(type: .system)
-           button.setTitle("Save", for: .normal)
-           button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-           button.backgroundColor = .systemOrange
-           button.setTitleColor(.white, for: .normal)
-           button.layer.cornerRadius = 8
-           button.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
-           return button
-       }()
-
+    private let saveButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Save", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.backgroundColor = .systemOrange
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        button.addTarget(self, action: #selector(handleSave), for: .touchUpInside)
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -664,56 +760,52 @@ class EditProfileViewController: UIViewController, UIImagePickerControllerDelega
     }
 
     private func setupUI() {
-           view.backgroundColor = .white
+        view.backgroundColor = .white
 
-           view.addSubview(profileImageView)
-           view.addSubview(selectImageButton)
-           view.addSubview(nameTextField)
-           view.addSubview(descriptionTextView)
-           view.addSubview(contactTextField)
-           view.addSubview(saveButton)
+        view.addSubview(profileImageView)
+        view.addSubview(selectImageButton)
+        view.addSubview(nameTextField)
+        view.addSubview(descriptionTextView)
+        view.addSubview(contactTextField)
+        view.addSubview(saveButton)
+    }
 
-           setupConstraints()
-       }
+    private func setupConstraints() {
+        profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        selectImageButton.translatesAutoresizingMaskIntoConstraints = false
+        nameTextField.translatesAutoresizingMaskIntoConstraints = false
+        descriptionTextView.translatesAutoresizingMaskIntoConstraints = false
+        contactTextField.translatesAutoresizingMaskIntoConstraints = false
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
 
-       private func setupConstraints() {
-           profileImageView.translatesAutoresizingMaskIntoConstraints = false
-           selectImageButton.translatesAutoresizingMaskIntoConstraints = false
-           nameTextField.translatesAutoresizingMaskIntoConstraints = false
-           descriptionTextView.translatesAutoresizingMaskIntoConstraints = false
-           contactTextField.translatesAutoresizingMaskIntoConstraints = false
-           saveButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            profileImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            profileImageView.widthAnchor.constraint(equalToConstant: 100),
+            profileImageView.heightAnchor.constraint(equalToConstant: 100),
 
-           NSLayoutConstraint.activate([
-               profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-               profileImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-               profileImageView.widthAnchor.constraint(equalToConstant: 100),
-               profileImageView.heightAnchor.constraint(equalToConstant: 100),
+            selectImageButton.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 10),
+            selectImageButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-               selectImageButton.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 10),
-               selectImageButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            nameTextField.topAnchor.constraint(equalTo: selectImageButton.bottomAnchor, constant: 20),
+            nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-               nameTextField.topAnchor.constraint(equalTo: selectImageButton.bottomAnchor, constant: 20),
-               nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-               nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            descriptionTextView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
+            descriptionTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            descriptionTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            descriptionTextView.heightAnchor.constraint(equalToConstant: 100),
 
-               descriptionTextView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 20),
-               descriptionTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-               descriptionTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-               descriptionTextView.heightAnchor.constraint(equalToConstant: 100),
+            contactTextField.topAnchor.constraint(equalTo: descriptionTextView.bottomAnchor, constant: 20),
+            contactTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            contactTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-               contactTextField.topAnchor.constraint(equalTo: descriptionTextView.bottomAnchor, constant: 20),
-               contactTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-               contactTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-               saveButton.topAnchor.constraint(equalTo: contactTextField.bottomAnchor, constant: 20),
-               saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-               saveButton.widthAnchor.constraint(equalToConstant: 100),
-               saveButton.heightAnchor.constraint(equalToConstant: 40)
-           ])
-       }
-
-
+            saveButton.topAnchor.constraint(equalTo: contactTextField.bottomAnchor, constant: 20),
+            saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            saveButton.widthAnchor.constraint(equalToConstant: 100),
+            saveButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
 
     private func populateFields() {
         nameTextField.text = name
@@ -725,7 +817,6 @@ class EditProfileViewController: UIViewController, UIImagePickerControllerDelega
             profileImageView.image = UIImage(named: "default_profile")
         }
     }
-
 
     private func loadProfileImage(from url: URL) {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
@@ -753,39 +844,33 @@ class EditProfileViewController: UIViewController, UIImagePickerControllerDelega
     }
 
     @objc private func handleSave() {
-            guard
-                let updatedName = nameTextField.text,
-                let updatedDescription = descriptionTextView.text,
-                let updatedContact = contactTextField.text,
-                let profileImage = profileImageView.image,
-                let imageData = profileImage.jpegData(compressionQuality: 0.8),
-                let userId = Auth.auth().currentUser?.uid
-            else { return }
+        guard
+            let updatedName = nameTextField.text,
+            let updatedDescription = descriptionTextView.text,
+            let updatedContact = contactTextField.text,
+            let profileImage = profileImageView.image,
+            let imageData = profileImage.jpegData(compressionQuality: 0.8),
+            let userId = Auth.auth().currentUser?.uid
+        else { return }
 
-            let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
-            storageRef.putData(imageData, metadata: nil) { _, error in
-                guard error == nil else { return }
+        let storageRef = Storage.storage().reference().child("profile_images/\(userId).jpg")
+        storageRef.putData(imageData, metadata: nil) { _, error in
+            guard error == nil else { return }
 
-                storageRef.downloadURL { [weak self] url, error in
-                    guard let url = url else { return }
+            storageRef.downloadURL { [weak self] url, error in
+                guard let url = url else { return }
 
-                    let details = UserDetails(
-                        name: updatedName,
-                        description: updatedDescription,
-                        contact: updatedContact,
-                        imageUrl: url.absoluteString
-                    )
+                let details = UserDetails(
+                    name: updatedName,
+                    description: updatedDescription,
+                    contact: updatedContact,
+                    imageUrl: url.absoluteString
+                )
 
-                    self?.onSave?(details)
-                    self?.navigationController?.popViewController(animated: true)
-                }
+                self?.onSave?(details)
+                self?.navigationController?.popViewController(animated: true)
             }
         }
+    }
 }
 
-struct UserDetails {
-    let name: String
-    let description: String
-    let contact: String
-    let imageUrl: String
-}

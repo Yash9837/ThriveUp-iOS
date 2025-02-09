@@ -1,10 +1,3 @@
-//
-//  ChatCell.swift
-//  ThriveUp
-//
-//  Created by palak seth on 13/11/24.
-//
-
 import UIKit
 import SDWebImage
 

@@ -10,8 +10,8 @@ class ChatViewController: UIViewController {
     let titleStackView = UIStackView()
     let friendRequestsButton = UIButton(type: .system)
     
-    var users: [User] = [] // All users fetched from Firestore
-    var filteredUsers: [User] = [] // Users filtered by search
+    var friends: [User] = [] // Friends fetched from Firestore
+    var filteredFriends: [User] = [] // Friends filtered by search
     var currentUser: User? // Current logged-in user
 
     override func viewDidLoad() {
@@ -35,6 +35,7 @@ class ChatViewController: UIViewController {
         
         // Configure friendRequestsButton
         friendRequestsButton.setTitle("Requests", for: .normal)
+        friendRequestsButton.addTarget(self, action: #selector(openFriendRequestsViewController), for: .touchUpInside)
 
         // Configure titleStackView
         titleStackView.axis = .horizontal
@@ -60,7 +61,7 @@ class ChatViewController: UIViewController {
 
     private func setupSearchBar() {
         searchBar.delegate = self
-        searchBar.placeholder = "Search users"
+        searchBar.placeholder = "Search friends"
         view.addSubview(searchBar)
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -73,7 +74,7 @@ class ChatViewController: UIViewController {
     private func setupTableView() {
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(ChatCell.self, forCellReuseIdentifier: "ChatCell")
+        tableView.register(ChatCell.self, forCellReuseIdentifier: ChatCell.identifier)
         tableView.rowHeight = 80
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -91,6 +92,16 @@ class ChatViewController: UIViewController {
         navigationController?.pushViewController(friendsVC, animated: true)
     }
 
+    @objc private func openFriendRequestsViewController() {
+        let friendRequestsVC = FriendRequestsViewController()
+        friendRequestsVC.currentUser = currentUser
+        let navController = UINavigationController(rootViewController: friendRequestsVC)
+        navController.modalPresentationStyle = .pageSheet
+        if let sheet = navController.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+        }
+        present(navController, animated: true, completion: nil)
+    }
 
     private func fetchCurrentUser() {
         guard let firebaseUser = Auth.auth().currentUser else {
@@ -104,24 +115,52 @@ class ChatViewController: UIViewController {
 
             if let currentUser = users.first(where: { $0.id == currentUserID }) {
                 self.currentUser = currentUser
-                self.users = users.filter { $0.id != currentUser.id } // Exclude current user
-                self.filteredUsers = self.users // Initialize filteredUsers with all users
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
+                self.fetchFriends(for: currentUser)
             } else {
                 print("Current user not found in users collection.")
             }
         }
     }
 
-    private func startChat(with otherUser: User) {
+    private func fetchFriends(for user: User) {
+        FriendsService.shared.fetchFriends(forUserID: user.id) { [weak self] friends, error in
+            if let error = error {
+                print("Error fetching friends: \(error)")
+                return
+            }
+            let friendIDs = friends?.map { $0.friendID } ?? []
+            self?.fetchFriendDetails(for: friendIDs)
+        }
+    }
+
+    private func fetchFriendDetails(for friendIDs: [String]) {
+        let dispatchGroup = DispatchGroup()
+        var fetchedFriends: [User] = []
+
+        for friendID in friendIDs {
+            dispatchGroup.enter()
+            FriendsService.shared.fetchUserDetails(uid: friendID) { user, error in
+                if let user = user {
+                    fetchedFriends.append(user)
+                }
+                dispatchGroup.leave()
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            self?.friends = fetchedFriends
+            self?.filteredFriends = fetchedFriends
+            self?.tableView.reloadData()
+        }
+    }
+
+    private func startChat(with friend: User) {
         guard let currentUser = currentUser else {
             print("Current user is nil. Cannot start chat.")
             return
         }
 
-        chatManager.fetchOrCreateChatThread(for: currentUser.id, with: otherUser.id) { [weak self] thread in
+        chatManager.fetchOrCreateChatThread(for: currentUser.id, with: friend.id) { [weak self] thread in
             guard let self = self, let thread = thread else {
                 print("Error creating or fetching chat thread.")
                 return
@@ -140,7 +179,7 @@ class ChatViewController: UIViewController {
 
 extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredUsers.count
+        return filteredFriends.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -148,20 +187,20 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
 
-        let user = filteredUsers[indexPath.row]
+        let friend = filteredFriends[indexPath.row]
 
         cell.configure(
-            with: user.name, // Assuming user.name is a String
+            with: friend.name, // Assuming friend.name is a String
             message: "Tap to start a chat", // Static message
             time: "", // Empty time string
-            user: user
+            user: friend
         )
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedUser = filteredUsers[indexPath.row]
-        startChat(with: selectedUser)
+        let selectedFriend = filteredFriends[indexPath.row]
+        startChat(with: selectedFriend)
     }
 }
 
@@ -170,9 +209,9 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
 extension ChatViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            filteredUsers = users
+            filteredFriends = friends
         } else {
-            filteredUsers = users.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+            filteredFriends = friends.filter { $0.name.lowercased().contains(searchText.lowercased()) }
         }
         tableView.reloadData()
     }
