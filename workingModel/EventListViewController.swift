@@ -14,6 +14,7 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
     private var filteredCategories: [String] = []
     private var collectionView: UICollectionView!
     private let searchBar = UISearchBar()
+    private let feedLabel = UILabel()
     private let filterButton = UIButton(type: .system)
 
     override func viewDidLoad() {
@@ -21,6 +22,7 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
         view.backgroundColor = .white
         
         setupNavigationBar()
+        setupFeedLabel()
         setupSearchBar()
         setupFilterButton()
         setupCollectionView()
@@ -68,8 +70,24 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
     }
 
     @objc private func notificationButtonTapped() {
-        let notificationVC = NotificationsViewController()
+        let notificationVC = NotificationViewController()
         navigationController?.pushViewController(notificationVC, animated: true)
+    }
+
+    // MARK: - Feed Label
+    private func setupFeedLabel() {
+        feedLabel.text = "Feed"
+        feedLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+        feedLabel.textAlignment = .left
+        
+        view.addSubview(feedLabel)
+        feedLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            feedLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            feedLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            feedLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            feedLabel.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
 
     // MARK: - Search Bar
@@ -81,7 +99,7 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
 
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchBar.topAnchor.constraint(equalTo: feedLabel.bottomAnchor, constant: 8),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -48),
             searchBar.heightAnchor.constraint(equalToConstant: 50)

@@ -12,20 +12,21 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
     private var collectionView: UICollectionView!
     private var categoryCollectionView: UICollectionView!
     private let searchBar = UISearchBar()
+    private let feedLabel = UILabel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         
+        setupNavigationBar()
+        setupFeedLabel()
         setupSearchBar()
-            setupCategoryCollectionView()  // Ensure this is called before collectionView
-            setupCollectionView()  // Called after categoryCollectionView is set up
-            setupNavigationBar()
-            
-            populateData()
-                
-                // Load dummy data
+        setupCategoryCollectionView()  // Ensure this is called before collectionView
+        setupCollectionView()  // Called after categoryCollectionView is set up
+        
+        populateData()
     }
+
     private func setupNavigationBar() {
         // Create the logo image view
         let logoImageView = UIImageView(image: UIImage(named: "thriveUpLogo"))
@@ -64,9 +65,25 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         // Set the button as the custom view of the right bar button item
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: loginButton)
     }
+
     @objc private func loginButtonTapped() {
         let loginVC = LoginViewController()
         navigationController?.pushViewController(loginVC, animated: true)
+    }
+
+    private func setupFeedLabel() {
+        feedLabel.text = "Feed"
+        feedLabel.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+        feedLabel.textAlignment = .left
+        
+        view.addSubview(feedLabel)
+        feedLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            feedLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            feedLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            feedLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            feedLabel.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
 
     private func setupSearchBar() {
@@ -75,16 +92,16 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         searchBar.backgroundImage = UIImage() // Remove border line
         searchBar.searchBarStyle = .minimal
         
-        
         view.addSubview(searchBar)
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            searchBar.topAnchor.constraint(equalTo: feedLabel.bottomAnchor, constant: 8),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
             searchBar.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
+
     private func setupCategoryCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -108,8 +125,6 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
             categoryCollectionView.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width - 16) // Adjusted width for scrolling
         ])
     }
-
-
 
     private func setupCollectionView() {
         // Configure the collection view with a compositional layout
@@ -179,52 +194,46 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         }
     }
 
-
- 
-    
-    
     private func populateData() {
-        
         categories = EventDataProvider.getCategories()
-                collectionView.reloadData()
-        
+        collectionView.reloadData()
     }
 
     // Collection View DataSource methods
-       func numberOfSections(in collectionView: UICollectionView) -> Int {
-           if collectionView == categoryCollectionView {
-                      return 1
-                  }
-                  return categories.count
-       }
-       
-       func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-           if collectionView == categoryCollectionView {
-               return ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ].count
-           }
-           return categories[section].events.count
-       }
-       func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-           if collectionView == categoryCollectionView {
-                       let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryButtonCell.identifier, for: indexPath) as! CategoryButtonCell
-                       let categories = ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ]
-                       cell.configure(with: categories[indexPath.item])
-                       return cell
-                   }
-                   
-                   let event = categories[indexPath.section].events[indexPath.item]
-                   let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EventCell.identifier, for: indexPath) as! EventCell
-                   cell.configure(with: event)
-                   return cell
-               }
-
-       // Add headers for section titles
-       func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-           let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.identifier, for: indexPath) as! CategoryHeader
-           header.titleLabel.text = categories[indexPath.section].name
-           return header
-       }
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        if collectionView == categoryCollectionView {
+            return 1
+        }
+        return categories.count
+    }
     
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView == categoryCollectionView {
+            return ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ].count
+        }
+        return categories[section].events.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == categoryCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryButtonCell.identifier, for: indexPath) as! CategoryButtonCell
+            let categories = ["All 🎓", "Club 🚀", "Tech 👨🏻‍💻", "Cult 🎭","Fun 🥳", "Well 🌱", "Netw 🤝","Conn 💼" ]
+            cell.configure(with: categories[indexPath.item])
+            return cell
+        }
+        
+        let event = categories[indexPath.section].events[indexPath.item]
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EventCell.identifier, for: indexPath) as! EventCell
+        cell.configure(with: event)
+        return cell
+    }
+
+    // Add headers for section titles
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.identifier, for: indexPath) as! CategoryHeader
+        header.titleLabel.text = categories[indexPath.section].name
+        return header
+    }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard collectionView != categoryCollectionView else {
@@ -233,11 +242,10 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
         }
         let selectedEvent = categories[indexPath.section].events[indexPath.item]
         
-        // Instantiate EventContainerViewController
-        let eventContainerVC = EventContainerViewController()
-        // Pass the selected event data to the container view controller
-        eventContainerVC.event = selectedEvent
-        // Push EventContainerViewController onto the navigation stack
-        navigationController?.pushViewController(eventContainerVC, animated: true)
+        // Instantiate Login VC
+        let loginVC = LoginViewController()
+        
+        // Push LoginViewController onto the navigation stack
+        navigationController?.pushViewController(loginVC, animated: true)
     }
-   }
+}

@@ -1,9 +1,3 @@
-//
-//  EventRegistrationViewController.swift
-//  ThriveUp
-//
-//  Created by Yash's Mackbook on 14/12/24.
-//
 import UIKit
 import FirebaseFirestore
 
@@ -33,6 +27,8 @@ class EventRegistrationViewController: UIViewController {
         button.layer.cornerRadius = 8
         return button
     }()
+
+    private let chatManager = FirestoreChatManager()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -94,11 +90,15 @@ class EventRegistrationViewController: UIViewController {
         db.collection("events")
             .document(eventId)
             .collection("registrations")
-            .addDocument(data: registrationData) { error in
+            .addDocument(data: registrationData) { [weak self] error in
                 if let error = error {
-                    self.showAlert(title: "Error", message: "Failed to register: \(error.localizedDescription)")
+                    self?.showAlert(title: "Error", message: "Failed to register: \(error.localizedDescription)")
                 } else {
-                    self.showAlert(title: "Success", message: "You have successfully registered!")
+                    self?.showAlert(title: "Success", message: "You have successfully registered!")
+                    // Notify friends about the event registration
+                    if let eventName = self?.event?.title {
+                        self?.chatManager.notifyFriendsForEventRegistration(eventName: eventName)
+                    }
                 }
             }
     }
@@ -109,4 +109,3 @@ class EventRegistrationViewController: UIViewController {
         present(alert, animated: true)
     }
 }
-

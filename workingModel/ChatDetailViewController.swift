@@ -3,7 +3,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 protocol ChatDetailViewControllerDelegate: AnyObject {
-    func chatDetailViewControllerDidOpenChat(chatThread: ChatThread)
+    func didSendMessage(_ message: ChatMessage, to friend: User)
 }
 
 class ChatDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -12,6 +12,7 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     private var messagesListener: ListenerRegistration?
     private let currentUserID = Auth.auth().currentUser?.uid ?? ""
     weak var delegate: ChatDetailViewControllerDelegate?
+    private let chatManager = FirestoreChatManager()
     
     private let tableView = UITableView()
     private let messageInputBar = UIView()
@@ -34,8 +35,10 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if let chatThread = chatThread {
-            delegate?.chatDetailViewControllerDidOpenChat(chatThread: chatThread)
+        if let chatThread = chatThread,
+           let lastMessage = chatThread.messages.last,
+           let participant = chatThread.participants.first(where: { $0.id != currentUserID }) {
+            delegate?.didSendMessage(lastMessage, to: participant)
         }
     }
     
@@ -142,107 +145,103 @@ class ChatDetailViewController: UIViewController, UITableViewDataSource, UITable
     @objc private func handleSend() {
         guard let text = inputTextField.text, !text.isEmpty, let chatThread = chatThread else { return }
         
-        let messageID = UUID().uuidString
-        let messageData: [String: Any] = [
-            "id": messageID,
-            "senderId": currentUserID,
-            "messageContent": text,
-            "timestamp": FieldValue.serverTimestamp()
-        ]
-        
-        db.collection("chats").document(chatThread.id).collection("messages").document(messageID).setData(messageData) { error in
-            if let error = error {
-                print("Error sending message: \(error)")
-            } else {
+        chatManager.sendMessage(chatThread: chatThread, messageContent: text, senderID: currentUserID) { [weak self] success in
+            if success {
                 DispatchQueue.main.async {
-                    self.inputTextField.text = nil
+                    self?.inputTextField.text = nil
+                    self?.fetchMessages()
+                    if let friend = chatThread.participants.first(where: { $0.id != self?.currentUserID }), let message = chatThread.messages.last {
+                        self?.delegate?.didSendMessage(message, to: friend)
+                    }
                 }
+            } else {
+                print("Failed to send message")
             }
         }
     }
     
     private func fetchMessages() {
-            guard let chatThread = chatThread else { return }
-            
-            messagesListener = db.collection("chats")
-                .document(chatThread.id)
-                .collection("messages")
-                .order(by: "timestamp", descending: false)
-                .addSnapshotListener { [weak self] snapshot, error in
-                    guard let self = self else { return }
-                    
-                    if let error = error {
-                        print("Error fetching messages: \(error)")
-                        return
-                    }
-                    
-                    guard let documents = snapshot?.documents else { return }
-                    
-                    let newMessages = documents.compactMap { doc -> ChatMessage? in
-                        let data = doc.data()
-                        let id = doc.documentID
-                        let senderID = data["senderId"] as? String ?? ""
-                        let messageContent = data["messageContent"] as? String ?? ""
-                        let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
-                        
-                        // Find sender details
-                        let sender = chatThread.participants.first { $0.id == senderID } ?? User(id: senderID, name: "Unknown")
-                        
-                        return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == self.currentUserID)
-                    }
-                    
-                    self.chatThread?.messages = newMessages
-                    self.tableView.reloadData()
-                    self.scrollToBottom()
-                }
-        }
+        guard let chatThread = chatThread else { return }
         
-        private func scrollToBottom() {
-            DispatchQueue.main.async {
-                let rowCount = self.chatThread?.messages.count ?? 0
-                if rowCount > 0 {
-                    let indexPath = IndexPath(row: rowCount - 1, section: 0)
-                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+        messagesListener = db.collection("chats")
+            .document(chatThread.id)
+            .collection("messages")
+            .order(by: "timestamp", descending: false)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Error fetching messages: \(error)")
+                    return
                 }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                let newMessages = documents.compactMap { doc -> ChatMessage? in
+                    let data = doc.data()
+                    let id = doc.documentID
+                    let senderID = data["senderId"] as? String ?? ""
+                    let messageContent = data["messageContent"] as? String ?? ""
+                    let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+                    
+                    // Find sender details
+                    let sender = chatThread.participants.first { $0.id == senderID } ?? User(id: senderID, name: "Unknown")
+                    
+                    return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == self.currentUserID)
+                }
+                
+                self.chatThread?.messages = newMessages
+                self.tableView.reloadData()
+                self.scrollToBottom()
+            }
+    }
+    
+    private func scrollToBottom() {
+        DispatchQueue.main.async {
+            let rowCount = self.chatThread?.messages.count ?? 0
+            if rowCount > 0 {
+                let indexPath = IndexPath(row: rowCount - 1, section: 0)
+                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
             }
         }
-        
-        // MARK: - UITableViewDataSource
-        
-        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            return chatThread?.messages.count ?? 0
+    }
+    
+    // MARK: - UITableViewDataSource
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return chatThread?.messages.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatMessageCell", for: indexPath) as! ChatMessageCell
+        if let message = chatThread?.messages[indexPath.row] {
+            cell.configure(with: message)
         }
-        
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "ChatMessageCell", for: indexPath) as! ChatMessageCell
-            if let message = chatThread?.messages[indexPath.row] {
-                cell.configure(with: message)
-            }
-            return cell
-        }
-        
-        // MARK: - UITableViewDelegate
-        
-        func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-            return UITableView.automaticDimension
-        }
-        
-        private func removeNotificationForChatThread(_ chatThread: ChatThread) {
-            db.collection("notifications")
-                .whereField("senderId", in: chatThread.participants.map { $0.id })
-                .getDocuments { snapshot, error in
-                    if let error = error {
-                        print("Error fetching notifications: \(error)")
-                        return
-                    }
-                    
-                    snapshot?.documents.forEach { document in
-                        document.reference.delete { error in
-                            if let error = error {
-                                print("Error deleting notification: \(error)")
-                            }
+        return cell
+    }
+    
+    // MARK: - UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+    
+    private func removeNotificationForChatThread(_ chatThread: ChatThread) {
+        db.collection("notifications")
+            .whereField("senderId", in: chatThread.participants.map { $0.id })
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error fetching notifications: \(error)")
+                    return
+                }
+                
+                snapshot?.documents.forEach { document in
+                    document.reference.delete { error in
+                        if let error = error {
+                            print("Error deleting notification: \(error)")
                         }
                     }
                 }
-        }
+            }
     }
+}

@@ -1,5 +1,6 @@
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 class ChatViewController: UIViewController {
     let tableView = UITableView()
@@ -9,10 +10,13 @@ class ChatViewController: UIViewController {
     let friendsButton = UIButton(type: .system)
     let titleStackView = UIStackView()
     let friendRequestsButton = UIButton(type: .system)
-    
+
     var friends: [User] = [] // Friends fetched from Firestore
     var filteredFriends: [User] = [] // Friends filtered by search
     var currentUser: User? // Current logged-in user
+    var lastMessages: [String: ChatMessage] = [:] // Last messages for each friend
+    var messageListeners: [String: ListenerRegistration] = [:] // Listeners for each chat thread
+    private var db = Firestore.firestore()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,6 +25,11 @@ class ChatViewController: UIViewController {
         setupSearchBar()
         setupTableView()
         fetchCurrentUser()
+    }
+
+    deinit {
+        // Remove all listeners
+        messageListeners.values.forEach { $0.remove() }
     }
 
     private func setupTitleStackView() {
@@ -32,7 +41,7 @@ class ChatViewController: UIViewController {
         // Configure friendsButton
         friendsButton.setTitle("Friends", for: .normal)
         friendsButton.addTarget(self, action: #selector(openFriendsViewController), for: .touchUpInside)
-        
+
         // Configure friendRequestsButton
         friendRequestsButton.setTitle("Requests", for: .normal)
         friendRequestsButton.addTarget(self, action: #selector(openFriendRequestsViewController), for: .touchUpInside)
@@ -150,7 +159,67 @@ class ChatViewController: UIViewController {
         dispatchGroup.notify(queue: .main) { [weak self] in
             self?.friends = fetchedFriends
             self?.filteredFriends = fetchedFriends
+            self?.fetchLastMessages()
+            self?.addMessageListeners()
+        }
+    }
+
+    private func fetchLastMessages() {
+        let dispatchGroup = DispatchGroup()
+        guard let currentUser = currentUser else { return }
+
+        for friend in friends {
+            dispatchGroup.enter()
+            chatManager.fetchOrCreateChatThread(for: currentUser.id, with: friend.id) { [weak self] thread in
+                guard let self = self, let thread = thread else {
+                    dispatchGroup.leave()
+                    return
+                }
+                self.chatManager.fetchLastMessage(for: thread, currentUserID: currentUser.id) { message in
+                    if let message = message {
+                        self.lastMessages[friend.id] = message
+                    }
+                    dispatchGroup.leave()
+                }
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) { [weak self] in
             self?.tableView.reloadData()
+        }
+    }
+
+    private func addMessageListeners() {
+        guard let currentUser = currentUser else { return }
+
+        for friend in friends {
+            chatManager.fetchOrCreateChatThread(for: currentUser.id, with: friend.id) { [weak self] thread in
+                guard let self = self, let thread = thread else { return }
+                let listener = self.db.collection("chats")
+                    .document(thread.id)
+                    .collection("messages")
+                    .order(by: "timestamp", descending: true)
+                    .limit(to: 1)
+                    .addSnapshotListener { [weak self] (snapshot: QuerySnapshot?, error: Error?) in
+                        guard let self = self else { return }
+                        if let error = error {
+                            print("Error listening for messages: \(error)")
+                            return
+                        }
+                        guard let document = snapshot?.documents.first else { return }
+                        let data = document.data()
+                        let messageContent = data["messageContent"] as? String ?? ""
+                        let senderId = data["senderId"] as? String ?? ""
+                        let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+
+                        let sender = thread.participants.first { $0.id == senderId } ?? User(id: senderId, name: "Unknown")
+                        let message = ChatMessage(id: document.documentID, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderId == currentUser.id)
+
+                        self.lastMessages[friend.id] = message
+                        self.tableView.reloadData()
+                    }
+                self.messageListeners[thread.id] = listener
+            }
         }
     }
 
@@ -169,6 +238,7 @@ class ChatViewController: UIViewController {
             DispatchQueue.main.async {
                 let chatDetailVC = ChatDetailViewController()
                 chatDetailVC.chatThread = thread
+                chatDetailVC.delegate = self
                 self.navigationController?.pushViewController(chatDetailVC, animated: true)
             }
         }
@@ -188,12 +258,15 @@ extension ChatViewController: UITableViewDataSource, UITableViewDelegate {
         }
 
         let friend = filteredFriends[indexPath.row]
+        let lastMessage = lastMessages[friend.id]
+        let messageText = lastMessage?.messageContent ?? "Tap to start a chat"
+        let messageTime = lastMessage?.formattedTime() ?? ""
 
         cell.configure(
-            with: friend.name, // Assuming friend.name is a String
-            message: "Tap to start a chat", // Static message
-            time: "", // Empty time string
-            user: friend
+            with: friend.name,
+            message: messageText,
+            time: messageTime,
+            profileImageURL: friend.profileImageURL
         )
         return cell
     }
@@ -218,5 +291,14 @@ extension ChatViewController: UISearchBarDelegate {
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
+    }
+}
+
+// MARK: - ChatDetailViewControllerDelegate
+
+extension ChatViewController: ChatDetailViewControllerDelegate {
+    func didSendMessage(_ message: ChatMessage, to friend: User) {
+        lastMessages[friend.id] = message
+        tableView.reloadData()
     }
 }

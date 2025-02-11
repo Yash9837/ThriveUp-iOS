@@ -1,4 +1,4 @@
-import UIKit
+/*import UIKit
 import FirebaseStorage
 
 class NotificationCell: UITableViewCell {
@@ -155,4 +155,4 @@ class NotificationCell: UITableViewCell {
             return "Just now"
         }
     }
-}
+}*/

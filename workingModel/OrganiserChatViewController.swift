@@ -84,7 +84,7 @@ extension OrganiserChatViewController: UITableViewDataSource, UITableViewDelegat
             with: user.name,
             message: "Tap to start a chat",
             time: "",
-            user: user
+            profileImageURL: user.profileImageURL
         )
         return cell
     }

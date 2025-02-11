@@ -45,7 +45,6 @@
 		577DA2E62CE890EA00760BFA /* AddFriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2E52CE890EA00760BFA /* AddFriendsViewController.swift */; };
 		577DA2E82CE8914400760BFA /* QuickAddCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2E72CE8914400760BFA /* QuickAddCollectionViewCell.swift */; };
 		577DA2EA2CE8918900760BFA /* FriendRequestCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2E92CE8918900760BFA /* FriendRequestCell.swift */; };
-		577DA2EC2CE891FF00760BFA /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2EB2CE891FF00760BFA /* NotificationsViewController.swift */; };
 		577DA2EE2CE8922B00760BFA /* NotificationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2ED2CE8922B00760BFA /* NotificationCell.swift */; };
 		577DA2F02CE898F000760BFA /* UserTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2EF2CE898F000760BFA /* UserTabBarController.swift */; };
 		577DA2F22CE8A4A000760BFA /* UserEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */; };
@@ -68,6 +67,8 @@
 		57D977BB2CEC9EF3004B1314 /* PostEventViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */; };
 		57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */; };
 		57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */; };
+		781DC1CC2D5B76A100322EF3 /* NotificationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781DC1CB2D5B76A100322EF3 /* NotificationTableViewCell.swift */; };
+		781DC1D02D5B771A00322EF3 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781DC1CF2D5B771A00322EF3 /* NotificationViewController.swift */; };
 		782F35712D4FBD3700DA461E /* FriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35702D4FBD3200DA461E /* FriendsViewController.swift */; };
 		782F35732D4FCF8900DA461E /* FriendsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35722D4FCF8900DA461E /* FriendsService.swift */; };
 		782F35752D4FCFD600DA461E /* FriendRequestsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */; };
@@ -139,7 +140,6 @@
 		577DA2E52CE890EA00760BFA /* AddFriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFriendsViewController.swift; sourceTree = "<group>"; };
 		577DA2E72CE8914400760BFA /* QuickAddCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAddCollectionViewCell.swift; sourceTree = "<group>"; };
 		577DA2E92CE8918900760BFA /* FriendRequestCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestCell.swift; sourceTree = "<group>"; };
-		577DA2EB2CE891FF00760BFA /* NotificationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
 		577DA2ED2CE8922B00760BFA /* NotificationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCell.swift; sourceTree = "<group>"; };
 		577DA2EF2CE898F000760BFA /* UserTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTabBarController.swift; sourceTree = "<group>"; };
 		577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserEventViewController.swift; sourceTree = "<group>"; };
@@ -162,6 +162,8 @@
 		57D977BA2CEC9EF3004B1314 /* PostEventViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEventViewController.swift; sourceTree = "<group>"; };
 		57D977BC2CEC9FB3004B1314 /* EventPostedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventPostedViewController.swift; sourceTree = "<group>"; };
 		57D977BE2CECA165004B1314 /* OrganizerProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizerProfileViewController.swift; sourceTree = "<group>"; };
+		781DC1CB2D5B76A100322EF3 /* NotificationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationTableViewCell.swift; sourceTree = "<group>"; };
+		781DC1CF2D5B771A00322EF3 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		782F35702D4FBD3200DA461E /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
 		782F35722D4FCF8900DA461E /* FriendsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsService.swift; sourceTree = "<group>"; };
 		782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequestsViewController.swift; sourceTree = "<group>"; };
@@ -228,6 +230,8 @@
 		577DA1BC2CE3999000760BFA /* ThriveUp */ = {
 			isa = PBXGroup;
 			children = (
+				781DC1CF2D5B771A00322EF3 /* NotificationViewController.swift */,
+				781DC1CB2D5B76A100322EF3 /* NotificationTableViewCell.swift */,
 				782F35782D554CCB00DA461E /* iOSOnboardingViewController.swift */,
 				782F35742D4FCFD600DA461E /* FriendRequestsViewController.swift */,
 				782F35722D4FCF8900DA461E /* FriendsService.swift */,
@@ -272,7 +276,6 @@
 				577DA2E52CE890EA00760BFA /* AddFriendsViewController.swift */,
 				577DA2E72CE8914400760BFA /* QuickAddCollectionViewCell.swift */,
 				577DA2E92CE8918900760BFA /* FriendRequestCell.swift */,
-				577DA2EB2CE891FF00760BFA /* NotificationsViewController.swift */,
 				577DA2ED2CE8922B00760BFA /* NotificationCell.swift */,
 				577DA2EF2CE898F000760BFA /* UserTabBarController.swift */,
 				577DA2F12CE8A4A000760BFA /* UserEventViewController.swift */,
@@ -461,6 +464,7 @@
 				577DA2F22CE8A4A000760BFA /* UserEventViewController.swift in Sources */,
 				577DA2002CE5DF6900760BFA /* FormFieldTableViewCell.swift in Sources */,
 				577DA1DC2CE4837700760BFA /* EventDetailViewController.swift in Sources */,
+				781DC1D02D5B771A00322EF3 /* NotificationViewController.swift in Sources */,
 				577DA2EA2CE8918900760BFA /* FriendRequestCell.swift in Sources */,
 				577DA1D42CE3BE2800760BFA /* EventCell.swift in Sources */,
 				57D977B12CEC9524004B1314 /* OrganizerTabBar.swift in Sources */,
@@ -491,8 +495,8 @@
 				7852F6112D456DE50068F229 /* EventContainerViewController.swift in Sources */,
 				782F35752D4FCFD600DA461E /* FriendRequestsViewController.swift in Sources */,
 				57D977BD2CEC9FB3004B1314 /* EventPostedViewController.swift in Sources */,
-				577DA2EC2CE891FF00760BFA /* NotificationsViewController.swift in Sources */,
 				7841AAA22D36902E00438FE0 /* InterestsViewController.swift in Sources */,
+				781DC1CC2D5B76A100322EF3 /* NotificationTableViewCell.swift in Sources */,
 				572D8A4D2D0DA2FD00DAB286 /* EventListViewController.swift in Sources */,
 				577DA2E02CE8901800760BFA /* ChatDetailViewController.swift in Sources */,
 				57D977BF2CECA165004B1314 /* OrganizerProfileViewController.swift in Sources */,

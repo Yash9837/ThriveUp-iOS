@@ -23,12 +23,12 @@ struct Friend: Decodable {
     let friendID: String
 }
 
-struct NotificationItem {
-    var id: String
-    var senderId: String
-    var name: String
-    var profileImageURL: String
-    var timestamp: Date
+struct NotificationModel {
+    let id: String
+    let title: String
+    let message: String
+    let date: Date
+    var isRead: Bool
 }
 
 struct Speaker: Codable {
@@ -180,7 +180,6 @@ struct User: Decodable {
     }
 }
 
-// ChatMessage model for individual messages
 struct ChatMessage {
     let id: String
     let sender: User
@@ -194,6 +193,12 @@ struct ChatMessage {
         self.messageContent = messageContent
         self.timestamp = timestamp
         self.isSender = isSender
+    }
+    
+    func formattedTime() -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: timestamp)
     }
 }
 

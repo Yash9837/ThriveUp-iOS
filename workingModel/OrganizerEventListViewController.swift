@@ -69,7 +69,7 @@ class OrganizerEventListViewController: UIViewController, UICollectionViewDelega
     }
 
     @objc private func notificationButtonTapped() {
-        let notificationVC = NotificationsViewController()
+        let notificationVC = NotificationViewController()
         navigationController?.pushViewController(notificationVC, animated: true)
     }
     
