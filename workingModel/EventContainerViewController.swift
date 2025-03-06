@@ -1,9 +1,11 @@
 import UIKit
+import FirebaseAuth
 
 class EventContainerViewController: UIViewController {
 
     // MARK: - Properties
     var event: EventModel? // Event data passed from the previous page
+    var openedFromEventVC: Bool = false // Flag to check if opened from EventViewController
 
     // MARK: - UI Elements
     private let detailsButton: UIButton = {
@@ -91,12 +93,13 @@ class EventContainerViewController: UIViewController {
 
         // Ensure event is not nil before initializing child view controllers
         guard let event = event else { return }
-        
+
         eventDetailVC = EventDetailViewController()
         eventDetailVC?.eventId = event.eventId
-        
+        eventDetailVC?.openedFromEventVC = openedFromEventVC // Pass the flag
+
         updatesVC = UpdatesViewController(eventId: event.eventId)
-        
+
         photosVC = PhotosViewController(eventId: event.eventId)
     }
 
@@ -105,7 +108,7 @@ class EventContainerViewController: UIViewController {
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
         swipeLeft.direction = .left
         view.addGestureRecognizer(swipeLeft)
-        
+
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
         swipeRight.direction = .right
         view.addGestureRecognizer(swipeRight)
@@ -149,7 +152,7 @@ class EventContainerViewController: UIViewController {
         detailsButton.setTitleColor(.orange, for: .normal)
         updatesButton.setTitleColor(.black, for: .normal)
         photosButton.setTitleColor(.black, for: .normal)
-        
+
         if let eventDetailVC = eventDetailVC {
             switchToViewController(eventDetailVC)
         }
@@ -159,7 +162,7 @@ class EventContainerViewController: UIViewController {
         detailsButton.setTitleColor(.black, for: .normal)
         updatesButton.setTitleColor(.orange, for: .normal)
         photosButton.setTitleColor(.black, for: .normal)
-        
+
         if let updatesVC = updatesVC {
             switchToViewController(updatesVC)
         }
@@ -169,7 +172,7 @@ class EventContainerViewController: UIViewController {
         detailsButton.setTitleColor(.black, for: .normal)
         updatesButton.setTitleColor(.black, for: .normal)
         photosButton.setTitleColor(.orange, for: .normal)
-        
+
         if let photosVC = photosVC {
             switchToViewController(photosVC)
         }

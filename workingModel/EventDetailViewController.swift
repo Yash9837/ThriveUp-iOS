@@ -1,19 +1,15 @@
-//
-//  EventDetailViewController.swift
-//  workingModel
-//
-//  Created by Yash's Mackbook on 13/11/24.
-//
 
 
 import UIKit
 import MapKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class EventDetailViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
     // MARK: - Properties
     var eventId: String? // Event ID passed from the previous page
+    var openedFromEventVC: Bool = false // Flag to check if opened from EventViewController
     private let db = Firestore.firestore()
     var event: EventModel?
 
@@ -141,7 +137,6 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
     }()
 
     private let speakersCollectionView: UICollectionView
-    
 
     private let registerButton: UIButton = {
         let button = UIButton(type: .system)
@@ -150,9 +145,10 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
         button.backgroundColor = .orange
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 10
-        
+        button.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
         return button
     }()
+
     // MARK: - Initializer
     init() {
         let layout = UICollectionViewFlowLayout()
@@ -172,7 +168,6 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        setupRegisterButton()
         fetchEventDetails()
     }
 
@@ -257,7 +252,7 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
             descriptionTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
 
             descriptionLabel.topAnchor.constraint(equalTo: descriptionTitleLabel.bottomAnchor, constant: 8),
-            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             // Location Section
@@ -323,9 +318,6 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
                 }
                 return Speaker(name: name, imageURL: imageURL)
             } ?? []
-            
-            // Debugging: Print the parsed speakers
-            print("Parsed Speakers: \(speakers)")
 
             // Fetch organizer details (UID from event document)
             let uid = data["uid"] as? String ?? ""
@@ -344,11 +336,10 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
                 locationDetails: data["locationDetails"] as? String ?? "",
                 imageName: data["imageName"] as? String ?? "",
                 speakers: speakers,
-                userId : "",
+                userId: "",
                 description: data["description"] as? String ?? "",
                 latitude: data["latitude"] as? Double,
                 longitude: data["longitude"] as? Double,
-                
                 tags: []
             )
             
@@ -433,34 +424,29 @@ class EventDetailViewController: UIViewController, UICollectionViewDataSource, U
         speakersCollectionView.reloadData()
     }
 
-    
-
-    private func setupRegisterButton() {
-        registerButton.setTitle("Register", for: .normal)
-        registerButton.backgroundColor = .orange
-        registerButton.setTitleColor(.white, for: .normal)
-        registerButton.layer.cornerRadius = 10
-        registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
-    }
     @objc private func registerButtonTapped() {
         guard let event = event else { return }
         
-        // Define form fields with placeholders and empty values
-        let formFields = [
-            FormField(placeholder: "Name", value: ""),
-            FormField(placeholder: "Phone Number", value: ""),
-            FormField(placeholder: "Year of Study", value: ""),
-            FormField(placeholder: "Course", value: ""),
-            FormField(placeholder: "Department", value: ""),
-            FormField(placeholder: "Specialization", value: "")
-        ]
-        
-        // Initialize and push the registration view controller
-        
-        let registrationVC = RegistrationViewController(formFields: formFields, event: event)
-                navigationController?.pushViewController(registrationVC, animated: true)
+        if openedFromEventVC{
+            // Navigate to LoginViewController
+            let loginVC = LoginViewController()
+            navigationController?.pushViewController(loginVC, animated: true)
+        } else {
+            // Define form fields with placeholders and empty values
+            let formFields = [
+                FormField(placeholder: "Name", value: ""),
+                FormField(placeholder: "Phone Number", value: ""),
+                FormField(placeholder: "Year of Study", value: ""),
+                FormField(placeholder: "Course", value: ""),
+                FormField(placeholder: "Department", value: ""),
+                FormField(placeholder: "Specialization", value: "")
+            ]
+            
+            // Initialize and push the registration view controller
+            let registrationVC = RegistrationViewController(formFields: formFields, event: event)
+            navigationController?.pushViewController(registrationVC, animated: true)
+        }
     }
-
 
     // MARK: - Collection View DataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

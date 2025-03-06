@@ -6,7 +6,7 @@ class LoginViewController: UIViewController {
     
     // MARK: - UI Elements
     private let segmentedControl: UISegmentedControl = {
-        let control = UISegmentedControl(items: ["User", "Host"])
+        let control = UISegmentedControl(items: ["User", "Organiser"])
         control.selectedSegmentIndex = 0
         control.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.1)
         control.selectedSegmentTintColor = .white
@@ -135,7 +135,7 @@ class LoginViewController: UIViewController {
     }
     
     private func updateLoginPrompt() {
-        loginTitleLabel.text = isUserSelected ? "User Login" : "Host Login"
+        loginTitleLabel.text = isUserSelected ? "User Login" : "Organiser Login"
     }
     
     @objc private func handleLogin() {

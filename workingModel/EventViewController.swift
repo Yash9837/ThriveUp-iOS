@@ -1,9 +1,3 @@
-//
-//  ViewController.swift
-//  workingModel
-//
-//  Created by Yash's Mackbook on 12/11/24.
-//
 import UIKit
 
 class EventViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
@@ -241,11 +235,13 @@ class EventViewController: UIViewController, UICollectionViewDelegate, UICollect
             return
         }
         let selectedEvent = categories[indexPath.section].events[indexPath.item]
-        
-        // Instantiate Login VC
-        let loginVC = LoginViewController()
-        
-        // Push LoginViewController onto the navigation stack
-        navigationController?.pushViewController(loginVC, animated: true)
+
+        // Instantiate EventContainerViewController
+        let eventContainerVC = EventContainerViewController()
+        eventContainerVC.event = selectedEvent
+        eventContainerVC.openedFromEventVC = true // Set the flag
+
+        // Push EventContainerViewController onto the navigation stack
+        navigationController?.pushViewController(eventContainerVC, animated: true)
     }
 }

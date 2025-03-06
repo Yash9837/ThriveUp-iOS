@@ -91,129 +91,10 @@ class FirestoreChatManager {
         }
     }
 
-    // Fetch messages for a specific chat thread
-    func fetchMessages(for chatThread: ChatThread, currentUserID: String, completion: @escaping ([ChatMessage]) -> Void) {
-        let chatRef = db.collection("chats").document(chatThread.id).collection("messages")
-        chatRef.order(by: "timestamp", descending: false).addSnapshotListener { snapshot, error in
-            guard let documents = snapshot?.documents else {
-                print("Error fetching messages: \(error?.localizedDescription ?? "Unknown error")")
-                completion([])
-                return
-            }
-
-            let messages = documents.compactMap { doc -> ChatMessage? in
-                let data = doc.data()
-                let id = doc.documentID
-                let messageContent = data["messageContent"] as? String ?? ""
-                let senderID = data["senderId"] as? String ?? ""
-                let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
-
-                guard let sender = chatThread.participants.first(where: { $0.id == senderID }) else {
-                    return nil
-                }
-
-                return ChatMessage(id: id, sender: sender, messageContent: messageContent, timestamp: timestamp, isSender: senderID == currentUserID)
-            }
-            completion(messages)
-        }
-    }
-
-    // Send a message in a chat thread
-    func sendMessage(chatThread: ChatThread, messageContent: String, senderID: String, completion: @escaping (Bool) -> Void) {
-        let chatRef = db.collection("chats").document(chatThread.id).collection("messages").document()
-
-        let messageData: [String: Any] = [
-            "id": chatRef.documentID,
-            "senderId": senderID,
-            "messageContent": messageContent,
-            "timestamp": FieldValue.serverTimestamp()
-        ]
-
-        chatRef.setData(messageData) { error in
-            if let error = error {
-                print("Error sending message: \(error)")
-                completion(false)
-            } else {
-                self.updateLastMessage(for: chatThread.id, lastMessage: messageContent)
-                self.createNotification(chatThread: chatThread, messageContent: messageContent)
-                completion(true)
-            }
-        }
-    }
-
-    // Update the last message in a chat thread
-    private func updateLastMessage(for chatId: String, lastMessage: String) {
-        let chatRef = db.collection("chats").document(chatId)
-        chatRef.updateData([
-            "lastMessage": lastMessage,
-            "timestamp": FieldValue.serverTimestamp()
-        ]) { error in
-            if let error = error {
-                print("Error updating last message: \(error)")
-            }
-        }
-    }
-
-    // Create a notification in the notifications collection
-    private func createNotification(chatThread: ChatThread, messageContent: String) {
-        guard let sender = chatThread.participants.first(where: { $0.id == Auth.auth().currentUser?.uid }) else { return }
-        guard let receiver = chatThread.participants.first(where: { $0.id != Auth.auth().currentUser?.uid }) else { return }
-
-        let notificationData: [String: Any] = [
-            "id": UUID().uuidString,
-            "userId": receiver.id,
-            "senderId": sender.id,
-            "title": "New Message from \(sender.name)",
-            "message": messageContent,
-            "timestamp": FieldValue.serverTimestamp(),
-            "isRead": false
-        ]
-
-        db.collection("notifications").addDocument(data: notificationData) { error in
-            if let error = error {
-                print("Error creating notification: \(error)")
-            }
-        }
-    }
-
-    // Create a notification for event registration
-    func notifyFriendsForEventRegistration(eventName: String) {
-        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
-
-        // Fetch friends of the current user
-        FriendsService.shared.fetchFriends(forUserID: currentUserID) { [weak self] friends, error in
-            if let error = error {
-                print("Error fetching friends: \(error)")
-                return
-            }
-
-            let friendIDs = friends?.map { $0.friendID } ?? []
-            self?.fetchParticipants(for: friendIDs) { participants in
-                for friend in participants {
-                    let notificationData: [String: Any] = [
-                        "id": UUID().uuidString,
-                        "userId": friend.id,
-                        "senderId": currentUserID,
-                        "title": "Event Registration",
-                        "message": "Your friend has registered for the event: \(eventName)",
-                        "timestamp": FieldValue.serverTimestamp(),
-                        "isRead": false
-                    ]
-
-                    self?.db.collection("notifications").addDocument(data: notificationData) { error in
-                        if let error = error {
-                            print("Error creating notification: \(error)")
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Fetch participants for a given list of user IDs
     func fetchParticipants(for participantIDs: [String], completion: @escaping ([User]) -> Void) {
-        guard !participantIDs.isEmpty, participantIDs.count <= 10 else {
-            print("Participant IDs array is empty or exceeds the Firestore query limit.")
+        guard !participantIDs.isEmpty else {
+            print("Participant IDs array is empty.")
             completion([])
             return
         }
@@ -234,6 +115,74 @@ class FirestoreChatManager {
             }
 
             completion(participants)
+        }
+    }
+
+    // Send a message in a chat thread
+    func sendMessage(chatThread: ChatThread, messageContent: String, senderID: String, completion: @escaping (Bool) -> Void) {
+        let chatRef = db.collection("chats").document(chatThread.id).collection("messages").document()
+
+        let messageData: [String: Any] = [
+            "id": chatRef.documentID,
+            "senderId": senderID,
+            "messageContent": messageContent,
+            "timestamp": FieldValue.serverTimestamp()
+        ]
+
+        chatRef.setData(messageData) { error in
+            if let error = error {
+                print("Error sending message: \(error)")
+                completion(false)
+            } else {
+                self.updateLastMessage(for: chatThread.id, lastMessage: messageContent)
+                completion(true)
+            }
+        }
+    }
+
+    // Update the last message in a chat thread
+    private func updateLastMessage(for chatId: String, lastMessage: String) {
+        let chatRef = db.collection("chats").document(chatId)
+        chatRef.updateData([
+            "lastMessage": lastMessage,
+            "timestamp": FieldValue.serverTimestamp()
+        ]) { error in
+            if let error = error {
+                print("Error updating last message: \(error)")
+            }
+        }
+    }
+
+    // Notify friends about event registration
+    func notifyFriendsForEventRegistration(eventName: String) {
+        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+
+        // Fetch friends of the current user
+        FriendsService.shared.fetchFriends(forUserID: currentUserID) { [weak self] friends, error in
+            if let error = error {
+                print("Error fetching friends: \(error)")
+                return
+            }
+            let friendIDs = friends?.map { $0.friendID } ?? []
+            self?.fetchParticipants(for: friendIDs) { participants in
+                for friend in participants {
+                    let notificationData: [String: Any] = [
+                        "id": UUID().uuidString,
+                        "userId": friend.id,
+                        "senderId": currentUserID,
+                        "title": "Event Registration",
+                        "message": "Your friend has registered for the event: \(eventName)",
+                        "timestamp": FieldValue.serverTimestamp(),
+                        "isRead": false
+                    ]
+
+                    self?.db.collection("notifications").addDocument(data: notificationData) { error in
+                        if let error = error {
+                            print("Error creating notification: \(error)")
+                        }
+                    }
+                }
+            }
         }
     }
 

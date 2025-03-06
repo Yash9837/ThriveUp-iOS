@@ -53,6 +53,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
             
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
+                print("Notifications loaded: \(self?.notifications.count ?? 0) notifications")
             }
         }
     }
@@ -88,6 +89,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
                     self?.notifications[index].isRead = true
                     DispatchQueue.main.async {
                         self?.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+                        print("Notification marked as read: \(notification.id)")
                     }
                 }
             }

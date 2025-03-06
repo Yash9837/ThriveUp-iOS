@@ -273,6 +273,8 @@ class EventListViewController: UIViewController, UICollectionViewDelegate, UICol
         if let event = filteredEventsByCategory[category]?[indexPath.item] {
             let eventContainerVC = EventContainerViewController()
             eventContainerVC.event = event
+            eventContainerVC.openedFromEventVC = false // Set the flag
+
             navigationController?.pushViewController(eventContainerVC, animated: true)
         }
     }
