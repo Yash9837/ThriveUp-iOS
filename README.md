@@ -4,8 +4,6 @@
 
 ---
 
-![ThriveUp Banner](apppcircle.png) <!-- Replace with your actual banner image if available -->
-
 ## ✨ Overview
 
 **ThriveUp** is a professional, feature-rich iOS app (built 100% in Swift) designed to connect students and participants at campus events and hackathons. With ThriveUp, discovering events, finding teammates, and building your campus network is easier than ever—all within a seamless and intuitive app experience.
