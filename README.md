@@ -51,8 +51,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ssanidhya0407/ThriveUp-AppConnect.git
-   cd ThriveUp-AppConnect
+   git clone https://github.com/yash9837/Thriveup-ios.git
+   cd Thriveup-ios
    ```
 
 2. **Install dependencies**
